@@ -24,7 +24,7 @@ export default function LoginSection({ setSelect }: Props) {
         password,
       });
 
-      const res = await fetch("http://api.nuraloom.xyz/auth/login", {
+      const res = await fetch("https://api.nuraloom.xyz/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

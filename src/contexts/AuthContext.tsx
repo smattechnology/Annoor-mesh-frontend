@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const getAuth = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("http://api.nuraloom.xyz/auth/", {
+      const res = await fetch("https://api.nuraloom.xyz/auth/", {
         method: "GET", // or "POST" if needed
         credentials: "include", // 👈 this includes cookies in cross-origin requests
       });
@@ -64,7 +64,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
 
-      const res = await fetch("http://api.nuraloom.xyz/auth/logout", {
+      const res = await fetch("https://api.nuraloom.xyz/auth/logout", {
         method: "GET",
         credentials: "include", // 👈 include cookies
       });
