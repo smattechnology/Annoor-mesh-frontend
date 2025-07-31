@@ -233,8 +233,19 @@ export const FoodSelectionPage: React.FC = () => {
           ))}
         </main>
 
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Note (optional)
+          </label>
+          <textarea
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            rows={3}
+            placeholder="Write any special instructions or notes here..."
+          />
+        </div>
+
         {/* Sticky Action Buttons */}
-        <div className="sticky bottom-4 bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+        <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
           <ActionButtons
             onSave={handleSave}
             onClear={handleClear}
