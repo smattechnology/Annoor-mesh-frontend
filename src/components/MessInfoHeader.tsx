@@ -192,7 +192,7 @@ export const MessInfoHeader: React.FC<MessInfoHeaderProps> = React.memo(
                 <div>
                   <label
                     htmlFor="budget-per-student"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-gray-700 mb-1 text-nowrap"
                   >
                     Per Student Budget (৳)
                   </label>
