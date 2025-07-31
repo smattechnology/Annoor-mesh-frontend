@@ -5,7 +5,7 @@ import { FloatingWhatsApp } from "react-floating-whatsapp";
 const Footer = () => {
   return (
     <div className="footer flex flex-col items-center justify-center p-8 border-t border-gray-200 bg-3 text-gray-300">
-      <p>© 2025 Mutadeen. All rights reserved.</p>
+      <p>© 2025 Mess Bazar - Annoor Foods. All rights reserved.</p>
       <FloatingWhatsApp
         phoneNumber="+8801840031889"
         accountName="Tech Support"
