@@ -24,7 +24,7 @@ export default function LoginSection({ setSelect }: Props) {
         password,
       });
 
-      const res = await fetch("http://localhost:1024/auth/login", {
+      const res = await fetch("http://api.nuraloom.xyz/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -54,9 +54,7 @@ export default function LoginSection({ setSelect }: Props) {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <h2 className="text-2xl font-bold mb-4 text-center">
-        Mesh Manager Login
-      </h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">Mesh Bazar Login</h2>
       {error && (
         <p className="text-red-500 text-sm text-center -mt-2">{error}</p>
       )}

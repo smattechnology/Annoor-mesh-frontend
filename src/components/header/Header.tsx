@@ -3,6 +3,9 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
+
+import { FloatingWhatsApp } from "react-floating-whatsapp";
+
 const Header = () => {
   const { user, logout } = useAuth();
   const pathname = usePathname();
@@ -49,6 +52,15 @@ const Header = () => {
           )}
         </div>
       </div>
+      <FloatingWhatsApp
+        phoneNumber="+8801840031889"
+        accountName="Tech Support"
+        notification
+        notificationSound
+        onSubmit={(e) => {
+          console.log(e);
+        }}
+      />
     </div>
   );
 };

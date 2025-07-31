@@ -1,6 +1,5 @@
 "use client";
 import DashboardContent from "@/components/section/admin/DashboardContent";
-import Mess from "@/components/section/admin/Mess";
 import MessContent from "@/components/section/admin/Mess";
 import ProductsContent from "@/components/section/admin/ProductsContent";
 import UsersContent from "@/components/section/admin/UsersContent";

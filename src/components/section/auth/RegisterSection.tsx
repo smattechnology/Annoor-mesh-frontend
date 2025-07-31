@@ -22,7 +22,7 @@ export default function RegisterSection({ setSelect }: Props) {
       setIsLoading(true);
       const payload = JSON.stringify({ name, email, password });
 
-      const res = await fetch("http://localhost:1024/auth/register", {
+      const res = await fetch("http://api.nuraloom.xyz/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
