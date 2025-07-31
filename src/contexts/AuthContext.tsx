@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (!res.ok) throw new Error("Unauthorized");
       const data = await res.json();
       setUser(data.client);
-    } catch (err) {
+    } catch (err: any) {
       setUser(null);
     } finally {
       setIsLoading(false);

@@ -30,7 +30,7 @@ export const formatBengaliDate = (
 
 // utils/validation.ts
 
-import { MessDaySettings, MealSelections } from "../types";
+import { MessDaySettings } from "../types";
 
 /**
  * Validates budget input values

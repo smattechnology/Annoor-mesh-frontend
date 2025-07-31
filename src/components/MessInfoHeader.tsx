@@ -20,7 +20,9 @@ interface MessInfoHeaderProps {
   /** Active meal times configuration */
   messDay: MessDaySettings;
   /** Handler for meal day settings changes */
-  setMessDay: (settings: MessDaySettings) => void;
+  setMessDay: (
+    settings: MessDaySettings | ((prev: MessDaySettings) => MessDaySettings)
+  ) => void;
   /** Number of selected items */
   selectedItemsCount: number;
   /** Total price of selected items */
@@ -86,12 +88,12 @@ export const MessInfoHeader: React.FC<MessInfoHeaderProps> = React.memo(
 
     const handleMessDayChange = useCallback(
       (mealType: keyof MessDaySettings, checked: boolean) => {
-        setMessDay((prev) => ({
+        setMessDay((prev: MessDaySettings) => ({
           ...prev,
           [mealType]: checked,
         }));
       },
-      [setMessDay]
+      []
     );
 
     return (

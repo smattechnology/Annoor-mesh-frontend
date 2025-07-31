@@ -142,8 +142,14 @@ export const useBudgetCalculations = (
     () => totalBudget - totalSelectionPrice,
     [totalBudget, totalSelectionPrice]
   );
+  type BudgetStatus =
+    | "no-budget"
+    | "over-budget"
+    | "high-utilization"
+    | "low-remaining"
+    | "normal";
 
-  const budgetStatus = useMemo(() => {
+  const budgetStatus: BudgetStatus = useMemo(() => {
     if (totalBudget === 0) return "no-budget";
 
     const isOverBudget = totalSelectionPrice > totalBudget;
