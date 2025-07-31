@@ -168,7 +168,7 @@ export const FoodSelectionPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
-        <header className="text-center mb-8">
+        {/* <header className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Food Selection
           </h1>
@@ -176,7 +176,7 @@ export const FoodSelectionPage: React.FC = () => {
             Choose your preferred meals for different times of the day. Set your
             budget and manage your meal plan efficiently.
           </p>
-        </header>
+        </header> */}
 
         {/* Mess Information and Configuration Header */}
         <MessInfoHeader
