@@ -52,7 +52,9 @@ export default function RegisterSection({ setSelect }: Props) {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <h2 className="text-2xl font-bold mb-4 text-center">Mesh Register</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">
+        Mess Bazar Register
+      </h2>
       {error && (
         <p className="text-red-500 text-sm text-center -mt-2">{error}</p>
       )}
