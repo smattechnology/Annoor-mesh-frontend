@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Header from "@/components/header/Header";
+import { FloatingWhatsApp } from "react-floating-whatsapp";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -38,6 +39,15 @@ export default function RootLayout({
           <div className="footer flex flex-col items-center justify-center p-8 border-t border-gray-200 bg-3 text-gray-300">
             {/* Footer or additional content can go here */}
             <p>© 2025 Mutadeen. All rights reserved.</p>
+            <FloatingWhatsApp
+              phoneNumber="+8801840031889"
+              accountName="Tech Support"
+              notification
+              notificationSound
+              onSubmit={(e) => {
+                console.log(e);
+              }}
+            />
           </div>
         </AuthProvider>
       </body>

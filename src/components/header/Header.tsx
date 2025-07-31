@@ -52,15 +52,6 @@ const Header = () => {
           )}
         </div>
       </div>
-      <FloatingWhatsApp
-        phoneNumber="+8801840031889"
-        accountName="Tech Support"
-        notification
-        notificationSound
-        onSubmit={(e) => {
-          console.log(e);
-        }}
-      />
     </div>
   );
 };
