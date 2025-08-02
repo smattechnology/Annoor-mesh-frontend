@@ -63,6 +63,7 @@ export const ItemCard: React.FC<ItemCardProps> = React.memo(
                 !item.bld?.breakfast && !item.bld?.lunch && !item.bld?.dinner
               }
               type="number"
+              onWheel={(e) => e.currentTarget.blur()}
               onInput={(e) => {
                 const input = e.target as HTMLInputElement;
                 if (input.value.length > 3) {
