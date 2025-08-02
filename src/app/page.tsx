@@ -7,14 +7,28 @@ import ProductSection from "@/components/item/ProductSection";
 import { Calculator, DollarSign, Users } from "lucide-react";
 import { BudgetSummary } from "@/components/item/BudgetSummary";
 import { BudgetStatus } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
+import { Loader } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   const [selectedData, setSelectedData] = useState<CategoryMap>({});
   const [totalPrice, setTotalPrice] = useState<number>(0);
-
   const [budgetPerStudent, setBudgetPerStudent] = useState<number>(0);
   const [totalStudents, setTotalStudents] = useState<number>(0);
   const [totalBudget, setTotalBudget] = useState<number>(0);
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (user) {
+        router.push("/");
+      } else {
+        router.push("/auth");
+      }
+    }
+  }, [isLoading, user, router]);
 
   useEffect(() => {
     const initialData = FOOD_CATEGORIES.reduce((acc, category) => {

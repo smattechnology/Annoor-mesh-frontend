@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { LoaderCircle, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import api from "@/utils/api";
 
 interface Props {
   setSelect: (value: "login" | "register") => void;
@@ -21,31 +22,26 @@ export default function RegisterSection({ setSelect }: Props) {
 
     try {
       setIsLoading(true);
-      const payload = JSON.stringify({ name, email, password });
 
-      const res = await fetch("https://api.nuraloom.xyz/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: payload,
+      const res = await api.post("/auth/register", {
+        name,
+        email,
+        password,
       });
 
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || "Registration failed");
-      }
+      const data = res.data;
 
-      const data = await res.json();
       if (data.user_id && data.token) {
-        getAuth();
+        getAuth(); // Log user in or update state
       }
     } catch (err: any) {
-      try {
-        const parsed = JSON.parse(err.message);
-        setError(parsed.detail || "Something went wrong");
-      } catch {
-        setError(err.message || "Something went wrong");
-      }
+      const message =
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        err.message ||
+        "Something went wrong";
+
+      setError(message);
     } finally {
       setIsLoading(false);
     }

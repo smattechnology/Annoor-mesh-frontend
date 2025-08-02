@@ -7,6 +7,8 @@ import React, {
   ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
+import api from "@/utils/api"; // update this path based on your file structure
+
 // Define your user structure
 interface User {
   id: string;
@@ -37,19 +39,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  // Fetch current user using token from localStorage
+
+  // Fetch current user using credentials (cookies)
   const getAuth = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("https://api.nuraloom.xyz/auth/", {
-        method: "GET", // or "POST" if needed
-        credentials: "include", // 👈 this includes cookies in cross-origin requests
-      });
-      if (!res.ok) throw new Error("Unauthorized");
-      const data = await res.json();
-      setUser(data.client);
-    } catch (err: any) {
-      setUser(null);
+
+      const res = await api.get("/auth/");
+      setUser(res.data.client);
+    } catch (err) {
+      setUser(null); // user not authenticated or request failed
     } finally {
       setIsLoading(false);
     }
@@ -59,32 +58,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     getAuth();
   }, []);
 
-  // Logout function (remove token & user)
+  // Logout function
   const logout = async () => {
     try {
       setIsLoading(true);
 
-      const res = await fetch("https://api.nuraloom.xyz/auth/logout", {
-        method: "GET",
-        credentials: "include", // 👈 include cookies
-      });
+      const res = await api.get("/auth/logout");
+      console.log("Logout success:", res.data?.message || res.data);
 
-      if (!res.ok) {
-        throw new Error("Logout failed");
-      }
-
-      // Optionally read the server response
-      const data = await res.json();
-      console.log("Logout success:", data.message || data);
-
-      // Clear user from context/state
       setUser(null);
-
-      // Optional: Redirect to login page
       router.push("/auth");
     } catch (err) {
       console.error("Logout error:", err);
-      setUser(null); // Make sure to clear state even on error
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
