@@ -10,7 +10,6 @@ import {
   ChevronRight,
   ChevronsRight,
 } from "lucide-react";
-import MessAddModal from "@/components/modal/MessAddModal";
 
 interface MessData {
   id: string;
@@ -211,11 +210,6 @@ const MessContent = () => {
 
   return (
     <div>
-      <MessAddModal
-        open={massAddIsOpen}
-        onClose={() => setMassAddIsOpen(false)}
-      />
-
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
         <h3 className="font-medium text-gray-700 text-lg">Mess Management</h3>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
