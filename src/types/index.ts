@@ -1,3 +1,16 @@
+export interface UserData {
+  id: string;
+  name: string;
+  email: string;
+  username: string;
+  role: string;
+  status: "active" | "inactive";
+  dob?: string;
+  address?: string;
+  created_at: string;
+  update_at: string;
+  avatar?: string;
+}
 export interface MessOwner {
   name: string;
   contact: string;

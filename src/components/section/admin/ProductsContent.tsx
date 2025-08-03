@@ -10,6 +10,8 @@ import {
   ChevronRight,
   ChevronsRight,
 } from "lucide-react";
+import Modal from "@/components/modal/Modal";
+import ProductsAddModal from "@/components/modal/ProductsAddModal";
 
 interface UserData {
   id: string;
@@ -42,6 +44,8 @@ const UsersContent = () => {
     field: string;
     direction: "asc" | "desc";
   }>({ field: "created_at", direction: "desc" });
+
+  const [productAddIsOpen, setProductAddIsOpen] = useState<boolean>(false);
 
   // Debounce search term
   useEffect(() => {
@@ -203,8 +207,8 @@ const UsersContent = () => {
 
   const tableHeaders = [
     { field: "name", label: "Name", sortAble: false },
-    { field: "email", label: "Email", sortAble: false },
-    { field: "role", label: "Role", sortAble: true },
+    { field: "category", label: "Category", sortAble: false },
+    { field: "price", label: "Price", sortAble: false },
     { field: "status", label: "Status", sortAble: true },
     { field: "created_at", label: "Joined At", sortAble: true },
     { field: "actions", label: "Actions" },
@@ -212,6 +216,10 @@ const UsersContent = () => {
 
   return (
     <div>
+      <ProductsAddModal
+        open={productAddIsOpen}
+        onClose={() => setProductAddIsOpen(false)}
+      />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
         <h3 className="font-medium text-gray-700 text-lg">User Management</h3>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -228,9 +236,13 @@ const UsersContent = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors whitespace-nowrap flex items-center gap-1 justify-center">
+
+          <button
+            className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors whitespace-nowrap flex items-center gap-1 justify-center"
+            onClick={() => setProductAddIsOpen(true)}
+          >
             <User size={16} />
-            <span>Add User</span>
+            <span>Add Products</span>
           </button>
         </div>
       </div>

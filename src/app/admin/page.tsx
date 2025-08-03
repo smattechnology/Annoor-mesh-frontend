@@ -69,6 +69,12 @@ export default function AdminPage() {
     },
     {
       icon: <Package size={18} />,
+      label: "Products",
+      isActive: selectedTab === "products",
+      onClick: () => setSelectedTab("products"),
+    },
+    {
+      icon: <Package size={18} />,
       label: "Mess",
       isActive: selectedTab === "mess",
       onClick: () => setSelectedTab("mess"),

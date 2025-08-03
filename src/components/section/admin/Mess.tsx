@@ -10,6 +10,7 @@ import {
   ChevronRight,
   ChevronsRight,
 } from "lucide-react";
+import MessAddModal from "@/components/modal/MessAddModal";
 
 interface MessData {
   id: string;
@@ -41,6 +42,8 @@ const MessContent = () => {
     field: string;
     direction: "asc" | "desc";
   }>({ field: "created_at", direction: "desc" });
+
+  const [massAddIsOpen, setMassAddIsOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -208,6 +211,11 @@ const MessContent = () => {
 
   return (
     <div>
+      <MessAddModal
+        open={massAddIsOpen}
+        onClose={() => setMassAddIsOpen(false)}
+      />
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
         <h3 className="font-medium text-gray-700 text-lg">Mess Management</h3>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -224,7 +232,11 @@ const MessContent = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors whitespace-nowrap flex items-center gap-1 justify-center">
+
+          <button
+            className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors whitespace-nowrap flex items-center gap-1 justify-center"
+            onClick={() => setMassAddIsOpen(true)}
+          >
             <User size={16} />
             <span>Add Mess</span>
           </button>

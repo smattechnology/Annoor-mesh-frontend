@@ -10,16 +10,8 @@ import {
   ChevronRight,
   ChevronsRight,
 } from "lucide-react";
-
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  status: "active" | "inactive";
-  created_at: string;
-  avatar?: string;
-}
+import UserAddModal from "@/components/modal/UserAddModal";
+import { UserData } from "@/types";
 
 interface ApiResponse {
   users: UserData[];
@@ -42,7 +34,10 @@ const UsersContent = () => {
     field: string;
     direction: "asc" | "desc";
   }>({ field: "created_at", direction: "desc" });
-
+  const [userAddIsOpen, setUserAddIsOpen] = useState<boolean>(false);
+  const [selectedUser, setSelectedUser] = useState<UserData | undefined>(
+    undefined
+  );
   // Debounce search term
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -212,6 +207,11 @@ const UsersContent = () => {
 
   return (
     <div>
+      <UserAddModal
+        open={userAddIsOpen}
+        onClose={() => setUserAddIsOpen(false)}
+        selectedUser={selectedUser}
+      />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
         <h3 className="font-medium text-gray-700 text-lg">User Management</h3>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -228,7 +228,10 @@ const UsersContent = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors whitespace-nowrap flex items-center gap-1 justify-center">
+          <button
+            className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors whitespace-nowrap flex items-center gap-1 justify-center"
+            onClick={() => setUserAddIsOpen(true)}
+          >
             <User size={16} />
             <span>Add User</span>
           </button>
@@ -335,7 +338,13 @@ const UsersContent = () => {
                         {new Date(user.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-blue-600 hover:text-blue-900 mr-3">
+                        <button
+                          className="text-blue-600 hover:text-blue-900 mr-3"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setUserAddIsOpen(true);
+                          }}
+                        >
                           Edit
                         </button>
                         <button className="text-red-600 hover:text-red-900">
