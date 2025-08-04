@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Modal from "./Modal";
 import api from "@/utils/api";
+import UniteAddModal from "./UniteAddModal";
+import CategoryAddModal from "./CategoryAddModal";
 
 interface ProductsAddModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit?: (productData: ProductFormData) => void;
 }
 
 interface ProductFormData {
@@ -34,8 +35,10 @@ interface LoadingState {
 const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
   open,
   onClose,
-  onSubmit,
 }) => {
+  const [showUniteAddModal, setShowUniteAddModal] = useState<boolean>(false);
+  const [showCategoryAddModal, setShowCategoryAddModal] =
+    useState<boolean>(false);
   // Form states
   const [name, setName] = useState("");
   const [price, setPrice] = useState<number | string>("");
@@ -165,7 +168,6 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
     try {
       const res = await api.post("/product/add", payload);
       if (res.status === 201) {
-        onSubmit?.({ name, price, unit, description, category });
         handleClose();
       }
     } catch (err) {
@@ -188,213 +190,250 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
   };
 
   return (
-    <Modal open={open} onClose={handleClose} size="lg" title="Add New Product">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Product Name */}
-        <div className="space-y-2">
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Product Name <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              onBlur={() => handleBlur("name")}
-              placeholder="Enter product name (e.g., Basmati Rice)"
-              className={`block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                errors.name && touched.name
-                  ? "border-red-300 bg-red-50 focus:border-red-500"
-                  : "border-gray-200 focus:border-blue-500 bg-white"
-              }`}
-            />
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <span className="text-gray-400">📦</span>
-            </div>
-          </div>
-          {errors.name && touched.name && (
-            <p className="text-red-600 text-sm flex items-center gap-1">
-              <span className="text-red-500">⚠️</span>
-              {errors.name}
-            </p>
-          )}
-        </div>
-
-        {/* Price and Unit Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Price */}
+    <div className="">
+      <Modal
+        open={open}
+        onClose={handleClose}
+        size="lg"
+        title="Add New Product"
+      >
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Product Name */}
           <div className="space-y-2">
             <label
-              htmlFor="price"
+              htmlFor="name"
               className="block text-sm font-medium text-gray-700"
             >
-              Price (৳) <span className="text-red-500">*</span>
+              Product Name <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
-                type="number"
-                id="price"
-                name="price"
-                value={price}
-                onChange={(e) => handleInputChange("price", e.target.value)}
-                onBlur={() => handleBlur("price")}
-                onWheel={(e) => e.currentTarget.blur()}
-                placeholder="0.00"
-                min="0"
-                step="0.01"
+                type="text"
+                id="name"
+                name="name"
+                value={name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                onBlur={() => handleBlur("name")}
+                placeholder="Enter product name (e.g., Basmati Rice)"
                 className={`block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  errors.price && touched.price
+                  errors.name && touched.name
                     ? "border-red-300 bg-red-50 focus:border-red-500"
                     : "border-gray-200 focus:border-blue-500 bg-white"
                 }`}
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                <span className="text-gray-400">৳</span>
+                <span className="text-gray-400">📦</span>
               </div>
             </div>
-            {errors.price && touched.price && (
+            {errors.name && touched.name && (
               <p className="text-red-600 text-sm flex items-center gap-1">
                 <span className="text-red-500">⚠️</span>
-                {errors.price}
+                {errors.name}
               </p>
             )}
           </div>
 
-          {/* Unit */}
+          {/* Price and Unit Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Price */}
+            <div className="space-y-2">
+              <label
+                htmlFor="price"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Price (৳) <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  id="price"
+                  name="price"
+                  value={price}
+                  onChange={(e) => handleInputChange("price", e.target.value)}
+                  onBlur={() => handleBlur("price")}
+                  onWheel={(e) => e.currentTarget.blur()}
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                  className={`block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    errors.price && touched.price
+                      ? "border-red-300 bg-red-50 focus:border-red-500"
+                      : "border-gray-200 focus:border-blue-500 bg-white"
+                  }`}
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <span className="text-gray-400">৳</span>
+                </div>
+              </div>
+              {errors.price && touched.price && (
+                <p className="text-red-600 text-sm flex items-center gap-1">
+                  <span className="text-red-500">⚠️</span>
+                  {errors.price}
+                </p>
+              )}
+            </div>
+
+            {/* Unit */}
+            <div className="space-y-2">
+              <label
+                htmlFor="unit"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Unit <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  id="unit"
+                  name="unit"
+                  value={unit}
+                  onChange={(e) => handleInputChange("unit", e.target.value)}
+                  onBlur={() => handleBlur("unit")}
+                  className={`block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    errors.unit && touched.unit
+                      ? "border-red-300 bg-red-50 focus:border-red-500"
+                      : "border-gray-200 focus:border-blue-500 bg-white"
+                  }`}
+                >
+                  {isLoading?.fetchUnites ? (
+                    <option value="">Loading...</option>
+                  ) : (
+                    <option value="">Select a unit</option>
+                  )}
+                  {units?.map((unitOption) => (
+                    <option key={unitOption.id} value={unitOption.id}>
+                      {unitOption.icon} {unitOption.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowUniteAddModal(true)}
+                className="mt-2 text-sm text-blue-600 hover:underline flex items-center gap-1"
+              >
+                <span>➕</span> Add new unit
+              </button>
+              {errors.unit && touched.unit && (
+                <p className="text-red-600 text-sm flex items-center gap-1">
+                  <span className="text-red-500">⚠️</span>
+                  {errors.unit}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Category */}
           <div className="space-y-2">
             <label
-              htmlFor="unit"
+              htmlFor="category"
               className="block text-sm font-medium text-gray-700"
             >
-              Unit <span className="text-red-500">*</span>
+              Category
             </label>
             <div className="relative">
               <select
-                id="unit"
-                name="unit"
-                value={unit}
-                onChange={(e) => handleInputChange("unit", e.target.value)}
-                onBlur={() => handleBlur("unit")}
+                id="category"
+                name="category"
+                value={category}
+                onChange={(e) => handleInputChange("category", e.target.value)}
                 style={{
                   scrollbarWidth: "thin",
                   scrollbarColor: "#cbd5e1 #f1f5f9",
                 }}
-                className={`block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 [&>option]:py-2 [&>option]:px-3 [&>option]:bg-white [&>option]:text-gray-900 [&>option:hover]:bg-blue-50 [&>option:checked]:bg-blue-100 [&>option:checked]:text-blue-900 ${
-                  errors.unit && touched.unit
-                    ? "border-red-300 bg-red-50 focus:border-red-500"
-                    : "border-gray-200 focus:border-blue-500 bg-white"
-                }`}
+                className="block w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 bg-white [&>option]:py-2 [&>option]:px-3 [&>option]:bg-white [&>option]:text-gray-900 [&>option:hover]:bg-blue-50 [&>option:checked]:bg-blue-100 [&>option:checked]:text-blue-900"
               >
-                {isLoading?.fetchUnites ? (
+                {isLoading?.fetchCategories ? (
                   <option value="">Loading....</option>
                 ) : (
                   <option value="">Select a category</option>
                 )}
-                {units?.map((unitOption) => (
-                  <option key={unitOption.id} value={unitOption.id}>
-                    {unitOption.icon} {unitOption.label}
+
+                {categories?.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.icon} {cat.label}
                   </option>
                 ))}
               </select>
             </div>
-            {errors.unit && touched.unit && (
-              <p className="text-red-600 text-sm flex items-center gap-1">
-                <span className="text-red-500">⚠️</span>
-                {errors.unit}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Category */}
-        <div className="space-y-2">
-          <label
-            htmlFor="category"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Category
-          </label>
-          <div className="relative">
-            <select
-              id="category"
-              name="category"
-              value={category}
-              onChange={(e) => handleInputChange("category", e.target.value)}
-              style={{
-                scrollbarWidth: "thin",
-                scrollbarColor: "#cbd5e1 #f1f5f9",
-              }}
-              className="block w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 bg-white [&>option]:py-2 [&>option]:px-3 [&>option]:bg-white [&>option]:text-gray-900 [&>option:hover]:bg-blue-50 [&>option:checked]:bg-blue-100 [&>option:checked]:text-blue-900"
+            <button
+              type="button"
+              onClick={() => setShowCategoryAddModal(true)}
+              className="mt-2 text-sm text-blue-600 hover:underline flex items-center gap-1"
             >
-              {isLoading?.fetchCategories ? (
-                <option value="">Loading....</option>
-              ) : (
-                <option value="">Select a category</option>
-              )}
-
-              {categories?.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.icon} {cat.label}
-                </option>
-              ))}
-            </select>
+              <span>➕</span> Add new Category
+            </button>
           </div>
-        </div>
 
-        {/* Description */}
-        <div className="space-y-2">
-          <label
-            htmlFor="description"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Description
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            value={description}
-            onChange={(e) => handleInputChange("description", e.target.value)}
-            placeholder="Additional details about the product (optional)"
-            rows={3}
-            className="block w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 bg-white placeholder-gray-400 resize-none"
-          />
-        </div>
+          {/* Description */}
+          <div className="space-y-2">
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              value={description}
+              onChange={(e) => handleInputChange("description", e.target.value)}
+              placeholder="Additional details about the product (optional)"
+              rows={3}
+              className="block w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 bg-white placeholder-gray-400 resize-none"
+            />
+          </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={isLoading?.formSubmit}
-            className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading?.formSubmit}
-            className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
-          >
-            {isLoading?.formSubmit ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Adding...
-              </>
-            ) : (
-              <>
-                <span>✨</span>
-                Add Product
-              </>
-            )}
-          </button>
-        </div>
-      </form>
-    </Modal>
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={handleClose}
+              disabled={isLoading?.formSubmit}
+              className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading?.formSubmit}
+              className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
+            >
+              {isLoading?.formSubmit ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <span>✨</span>
+                  Add Product
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </Modal>
+      <UniteAddModal
+        open={showUniteAddModal}
+        onClose={() => {
+          setShowUniteAddModal(false);
+        }}
+        onSuccess={(id) => {
+          fetchUnits();
+          setUnit(id);
+        }}
+      />
+      <CategoryAddModal
+        open={showCategoryAddModal}
+        onClose={() => {
+          setShowCategoryAddModal(false);
+        }}
+        onSuccess={(id) => {
+          fetchCategories();
+          setCategory(id);
+        }}
+      />
+    </div>
   );
 };
 
