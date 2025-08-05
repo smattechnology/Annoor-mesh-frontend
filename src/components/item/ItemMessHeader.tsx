@@ -1,17 +1,31 @@
 import { BUDGET_THRESHOLDS, MESS_INFO } from "@/constants";
 import { BudgetStatus, SelectedItems } from "@/types";
 import { Calculator, DollarSign, Users } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { BudgetSummary } from "./BudgetSummary";
 
 interface ItemMessHeaderProps {
   selectedItems: SelectedItems;
+  budgetPerStudent: number;
+  totalStudents: number;
+  setBudgetPerStudent: Dispatch<SetStateAction<number>>;
+  setTotalStudents: Dispatch<SetStateAction<number>>;
 }
 
-const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({ selectedItems }) => {
+const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
+  selectedItems,
+  budgetPerStudent,
+  totalStudents,
+  setBudgetPerStudent,
+  setTotalStudents,
+}) => {
   const [totalPrice, setTotalPrice] = useState<number>(0);
-  const [budgetPerStudent, setBudgetPerStudent] = useState<number>(0);
-  const [totalStudents, setTotalStudents] = useState<number>(0);
   const [totalBudget, setTotalBudget] = useState<number>(0);
 
   useEffect(() => {

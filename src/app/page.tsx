@@ -12,6 +12,9 @@ export default function Page() {
   const [data, setData] = useState<Category[] | []>([]);
   const [selectedItems, setSelectedItems] = useState<SelectedItems>({});
 
+  const [mealBudget, setMealBudget] = useState<number>(0);
+  const [totalMeal, setTotalMeal] = useState<number>(0);
+
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -81,8 +84,8 @@ export default function Page() {
     }));
   };
 
-  const handleSubmit = () => {
-    const payload = Object.entries(selectedItems).map(([productId, data]) => ({
+  const handleSubmit = async () => {
+    const items = Object.entries(selectedItems).map(([productId, data]) => ({
       product_id: productId,
       price: data.price ?? 0,
       bld: {
@@ -91,14 +94,34 @@ export default function Page() {
         dinner: data.bld?.dinner ?? false,
       },
     }));
+    console.log(items);
 
-    console.log(JSON.stringify(payload, null, 2)); // or send via API
-    // await api.post("/your-endpoint", payload)
+    const payload = {
+      user_id: user?.id,
+      mess_id: "a9b5dfb3-257e-4e3e-9472-cd169ddf708c",
+      meal_budget: mealBudget,
+      total_meal: totalMeal,
+      items: items,
+    };
+
+    const req = await api.post("/order/add", payload);
+
+    if (req.status !== 201) return;
+
+    const data = req.data;
+
+    console.log(data);
   };
 
   return (
     <div className="w-ful lg:max-w-7xl mx-auto">
-      <ItemMessHeader selectedItems={selectedItems} />
+      <ItemMessHeader
+        selectedItems={selectedItems}
+        setBudgetPerStudent={setMealBudget}
+        setTotalStudents={setTotalMeal}
+        budgetPerStudent={mealBudget}
+        totalStudents={totalMeal}
+      />
 
       <div className="p-4">
         <button
