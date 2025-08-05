@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import MessAddModal from "@/components/modal/MessAddModal";
 import { MessData } from "@/types";
+import api from "@/utils/api";
 
 interface ApiResponse {
   messes: MessData[];
@@ -65,15 +66,13 @@ const MessContent = () => {
         search: debouncedSearchTerm,
       });
 
-      const response = await fetch(
-        `http://localhost:1024/mess/all?${params.toString()}`
-      );
+      const response = await api.get(`/mess/all?${params.toString()}`);
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: ApiResponse = await response.json();
+      const data: ApiResponse = await response.data;
 
       setMesses(data.messes);
       setTotalMesses(data.total);
