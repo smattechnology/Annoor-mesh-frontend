@@ -74,18 +74,9 @@ const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h2 className="text-2xl font-bold">{MESS_INFO.name}</h2>
-            <p className="text-blue-100 text-sm">
-              Established:
-              {new Date(MESS_INFO.established).toLocaleDateString(
-                "bn-BD"
-              )} • {MESS_INFO.type}
-            </p>
           </div>
           <div className="text-right">
             <p className="text-sm text-blue-100">Capacity</p>
-            <p className="text-xl font-semibold">
-              {MESS_INFO.capacity} Students
-            </p>
           </div>
         </div>
       </div>
@@ -120,28 +111,7 @@ const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Contact:</span>
-                <span className="text-gray-900">{MESS_INFO.contact.phone}</span>
-              </div>
-            </div>
-
-            {/* Meal Timings */}
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <h4 className="font-medium text-sm text-gray-900 mb-2">
-                Meal Timings
-              </h4>
-              <div className="space-y-1 text-xs">
-                <div className="flex justify-between">
-                  <span>Breakfast:</span>
-                  <span>{MESS_INFO.mealTiming.breakfast}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Lunch:</span>
-                  <span>{MESS_INFO.mealTiming.lunch}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Dinner:</span>
-                  <span>{MESS_INFO.mealTiming.dinner}</span>
-                </div>
+                <span className="text-gray-900">{MESS_INFO.phone}</span>
               </div>
             </div>
           </div>

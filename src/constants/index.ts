@@ -1,35 +1,19 @@
-import { Category, MessInfo } from "@/types";
+import { Category, MessData } from "@/types";
 
-export const MESS_INFO: MessInfo = {
+export const MESS_INFO: MessData = {
   name: "ছাত্রাবাস স্মাট মেস",
-  established: "2021-08-01",
-  type: "Boys Mess",
+  type: "BOYS_MESS",
   owner: {
     name: "Abir Hasan",
-    contact: "+8801712345678",
-    email: "abir@smatmess.com",
+    phone: "+8801712345678",
   },
   address: {
     street: "House 12, Road 7",
     area: "Uttara Sector 10",
     city: "Dhaka",
-    postalCode: "1230",
-    country: "Bangladesh",
+    postalCode: 1230,
   },
-  contact: {
-    phone: "+880961234567",
-    email: "info@smatmess.com",
-    facebook: "https://facebook.com/smatmess",
-    website: "https://smatmess.com",
-  },
-  capacity: 50,
-  mealTiming: {
-    breakfast: "7:30 AM - 9:00 AM",
-    lunch: "1:00 PM - 2:30 PM",
-    dinner: "8:00 PM - 9:30 PM",
-  },
-  offDays: ["Friday"],
-  notes: "All meals are served fresh. Monthly and daily plans available.",
+  phone: "+880961234567",
 };
 
 export const FOOD_CATEGORIES: Category[] = [
