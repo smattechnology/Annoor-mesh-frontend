@@ -11,45 +11,6 @@ export interface UserData {
   update_at: string;
   avatar?: string;
 }
-export interface MessOwner {
-  name: string;
-  contact: string;
-  email: string;
-}
-
-export interface MessAddress {
-  street: string;
-  area: string;
-  city: string;
-  postalCode: string;
-  country: string;
-}
-
-export interface MessContact {
-  phone: string;
-  email: string;
-  facebook: string;
-  website: string;
-}
-
-export interface MealTiming {
-  breakfast: string;
-  lunch: string;
-  dinner: string;
-}
-
-export interface MessInfo {
-  name: string;
-  established: string;
-  type: string;
-  owner: MessOwner;
-  address: MessAddress;
-  contact: MessContact;
-  capacity: number;
-  mealTiming: MealTiming;
-  offDays: string[];
-  notes: string;
-}
 
 export interface MealTime {
   breakfast?: boolean;
@@ -91,3 +52,59 @@ export type BudgetStatus =
   | "high-utilization"
   | "low-remaining"
   | "normal";
+
+export type Product = {
+  id: string;
+  name: string;
+  price: string;
+  description: string | null;
+  category: {
+    id: string;
+    label: string;
+    icon: string;
+    created_at: string;
+    updated_at: string;
+  };
+  unit: {
+    id: string;
+    label: string;
+    icon: string;
+    created_at: string;
+    updated_at: string;
+  };
+  created_at: string;
+  updated_at: string;
+};
+
+export interface MessAddress {
+  id?: string;
+  street: string;
+  area: string;
+  city: string;
+  postalCode: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MessOwner {
+  id?: string;
+  name: string;
+  phone: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type MessStatus = "active" | "disabled" | "deleted" | "banned";
+export type MessType = "BOYS_MESS" | "GIRLS_MESS";
+
+export interface MessData {
+  id?: string;
+  name: string;
+  phone?: string;
+  status?: MessStatus;
+  type: MessType;
+  address: MessAddress;
+  owner: MessOwner;
+  created_at?: string;
+  updated_at?: string;
+}

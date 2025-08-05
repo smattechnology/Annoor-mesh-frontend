@@ -3,10 +3,13 @@ import Modal from "./Modal";
 import api from "@/utils/api";
 import UniteAddModal from "./UniteAddModal";
 import CategoryAddModal from "./CategoryAddModal";
+import ProductSearchInput from "../ProductSearchInput";
+import { Product } from "@/types";
 
 interface ProductsAddModalProps {
   open: boolean;
   onClose: () => void;
+  selectedProduct?: Product;
 }
 
 interface ProductFormData {
@@ -35,6 +38,7 @@ interface LoadingState {
 const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
   open,
   onClose,
+  selectedProduct,
 }) => {
   const [showUniteAddModal, setShowUniteAddModal] = useState<boolean>(false);
   const [showCategoryAddModal, setShowCategoryAddModal] =
@@ -50,6 +54,9 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
   const [units, setUnits] = useState<SelectOption[]>([]);
   const [categories, setCategories] = useState<SelectOption[]>([]);
 
+  const [searchFound, setSearchFound] = useState<boolean>(false);
+  const [autoCompleteEnabled, setAutoCompleteEnabled] =
+    useState<boolean>(false);
   // State control
   const [errors, setErrors] = useState<Partial<ProductFormData>>({});
   const [touched, setTouched] = useState<
@@ -64,6 +71,18 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
       fetchCategories();
     }
   }, [open]);
+
+  useEffect(() => {
+    if (selectedProduct) {
+      setName(selectedProduct.name);
+      setPrice(selectedProduct.price);
+      setUnit(selectedProduct.unit.id);
+      setCategory(selectedProduct.category.id);
+      setDescription(
+        selectedProduct.description ? selectedProduct.description : ""
+      );
+    }
+  }, [selectedProduct]);
 
   const fetchUnits = async () => {
     setIsLoading((prev) => ({ ...prev, fetchUnites: true }));
@@ -189,6 +208,14 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
     onClose();
   };
 
+  const handleAutocompleteSelect = (p: Product) => {
+    setName(p.name);
+    setPrice(p.price);
+    setUnit(p.unit.id);
+    setCategory(p.category.id);
+    setDescription(p.description ? p.description : "");
+  };
+
   return (
     <div className="">
       <Modal
@@ -199,7 +226,7 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Product Name */}
-          <div className="space-y-2">
+          <div className="space-y-2 relative">
             <label
               htmlFor="name"
               className="block text-sm font-medium text-gray-700"
@@ -212,14 +239,25 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
                 id="name"
                 name="name"
                 value={name}
+                onClick={() => setAutoCompleteEnabled(true)}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                onBlur={() => handleBlur("name")}
+                onBlur={() => {
+                  handleBlur("name");
+                  setAutoCompleteEnabled(false);
+                }}
                 placeholder="Enter product name (e.g., Basmati Rice)"
                 className={`block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  errors.name && touched.name
+                  (errors.name && touched.name) ||
+                  (searchFound && selectedProduct?.name !== name)
                     ? "border-red-300 bg-red-50 focus:border-red-500"
                     : "border-gray-200 focus:border-blue-500 bg-white"
                 }`}
+              />
+              <ProductSearchInput
+                input={name}
+                onSelectProduct={handleAutocompleteSelect}
+                setIsFound={(found) => setSearchFound(found)}
+                enable={autoCompleteEnabled}
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                 <span className="text-gray-400">📦</span>

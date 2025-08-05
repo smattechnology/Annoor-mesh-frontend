@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import {
-  User,
+  Package,
   Search,
   ChevronUp,
   ChevronDown,
@@ -9,37 +9,32 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsRight,
+  User,
 } from "lucide-react";
-import Modal from "@/components/modal/Modal";
 import ProductsAddModal from "@/components/modal/ProductsAddModal";
-
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  status: "active" | "inactive";
-  created_at: string;
-  avatar?: string;
-}
+import api from "@/utils/api";
+import { Product } from "@/types";
 
 interface ApiResponse {
-  users: UserData[];
+  products: Product[];
   total: number;
   limit: number;
   skip: number;
 }
 
-const UsersContent = () => {
-  const [users, setUsers] = useState<UserData[]>([]);
+const ProductsContent = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(
+    undefined
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [usersPerPage] = useState(10);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [productsPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState<{
     field: string;
     direction: "asc" | "desc";
@@ -47,57 +42,47 @@ const UsersContent = () => {
 
   const [productAddIsOpen, setProductAddIsOpen] = useState<boolean>(false);
 
-  // Debounce search term
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
-      setCurrentPage(1); // Reset to first page on search
+      setCurrentPage(1);
     }, 500);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Fetch users from API
-  const fetchUsers = async () => {
+  const fetchProducts = async () => {
     try {
       setLoading(true);
       setError(null);
 
       const params = new URLSearchParams({
-        skip: ((currentPage - 1) * usersPerPage).toString(),
-        limit: usersPerPage.toString(),
+        skip: ((currentPage - 1) * productsPerPage).toString(),
+        limit: productsPerPage.toString(),
         sort_by: sortConfig.field,
         sort_order: sortConfig.direction,
         search: debouncedSearchTerm,
       });
 
-      const response = await fetch(
-        `http://localhost:1024/user/all?${params.toString()}`
-      );
+      const response = await api.get(`/product/get/all?${params.toString()}`);
 
-      if (!response.ok) {
+      if (response.status !== 200)
         throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
-      const data: ApiResponse = await response.json();
-
-      setUsers(data.users);
-      setTotalUsers(data.total);
-      setTotalPages(Math.ceil(data.total / usersPerPage));
+      const data: ApiResponse = await response.data;
+      setProducts(data.products);
+      setTotalProducts(data.total);
+      setTotalPages(Math.ceil(data.total / productsPerPage));
     } catch (err) {
-      console.error("Failed to fetch users:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch users");
-      setUsers([]);
+      console.error("Failed to fetch products:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch products");
+      setProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Main fetch effect
   useEffect(() => {
-    fetchUsers();
+    fetchProducts();
   }, [currentPage, sortConfig, debouncedSearchTerm]);
 
   const requestSort = (field: string) => {
@@ -209,19 +194,16 @@ const UsersContent = () => {
     { field: "name", label: "Name", sortAble: false },
     { field: "category", label: "Category", sortAble: false },
     { field: "price", label: "Price", sortAble: false },
-    { field: "status", label: "Status", sortAble: true },
-    { field: "created_at", label: "Joined At", sortAble: true },
+    { field: "created_at", label: "Created At", sortAble: false },
     { field: "actions", label: "Actions" },
   ];
 
   return (
     <div>
-      <ProductsAddModal
-        open={productAddIsOpen}
-        onClose={() => setProductAddIsOpen(false)}
-      />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
-        <h3 className="font-medium text-gray-700 text-lg">User Management</h3>
+        <h3 className="font-medium text-gray-700 text-lg">
+          Product Management
+        </h3>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <div className="relative">
             <Search
@@ -230,19 +212,19 @@ const UsersContent = () => {
             />
             <input
               type="text"
-              placeholder="Search users..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
+              placeholder="Search products..."
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
           <button
-            className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors whitespace-nowrap flex items-center gap-1 justify-center"
+            className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors flex items-center gap-1"
             onClick={() => setProductAddIsOpen(true)}
           >
-            <User size={16} />
-            <span>Add Products</span>
+            <Package size={16} />
+            <span>Add Product</span>
           </button>
         </div>
       </div>
@@ -253,7 +235,7 @@ const UsersContent = () => {
         </div>
       ) : loading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500" />
         </div>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -290,64 +272,41 @@ const UsersContent = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {users.length > 0 ? (
-                  users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50">
+                {products.length > 0 ? (
+                  products.map((product) => (
+                    <tr key={product.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                            {user.avatar ? (
-                              <img
-                                src={user.avatar}
-                                alt={user.name}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <User className="text-gray-500" size={20} />
-                            )}
+                            <Package className="text-gray-500" size={20} />
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
-                              {user.name}
+                              {product.name}
                             </div>
                             <div className="text-sm text-gray-500">
-                              ID: {user.id}
+                              ID: {product.id}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {user.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            user.role === "admin"
-                              ? "bg-purple-100 text-purple-800"
-                              : user.role === "editor"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-green-100 text-green-800"
-                          }`}
-                        >
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            user.status === "active"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {user.status}
-                        </span>
+                        {product.category.label}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(user.created_at).toLocaleDateString()}
+                        {product.price} / {product.unit.label}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(product.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-blue-600 hover:text-blue-900 mr-3">
+                        <button
+                          className="text-blue-600 hover:text-blue-900 mr-3 cursor-pointer"
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setProductAddIsOpen(true);
+                          }}
+                        >
                           Edit
                         </button>
                         <button className="text-red-600 hover:text-red-900">
@@ -374,16 +333,18 @@ const UsersContent = () => {
             <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm text-gray-700">
-                    Showing
+                  <p className="text-sm text-gray-700 space-x-1">
+                    <span>Showing</span>
                     <span className="font-medium">
-                      {(currentPage - 1) * usersPerPage + 1}
+                      {(currentPage - 1) * productsPerPage + 1}
                     </span>
-                    to
+                    <span>to</span>
                     <span className="font-medium">
-                      {Math.min(currentPage * usersPerPage, totalUsers)}
+                      {Math.min(currentPage * productsPerPage, totalProducts)}
                     </span>
-                    of <span className="font-medium">{totalUsers}</span> results
+                    <span>of</span>
+                    <span className="font-medium">{totalProducts}</span>
+                    <span>results</span>
                   </p>
                 </div>
                 <div>
@@ -399,8 +360,16 @@ const UsersContent = () => {
           )}
         </div>
       )}
+      <ProductsAddModal
+        open={productAddIsOpen}
+        onClose={() => {
+          setProductAddIsOpen(false);
+          setSelectedProduct(undefined);
+        }}
+        selectedProduct={selectedProduct}
+      />
     </div>
   );
 };
 
-export default UsersContent;
+export default ProductsContent;

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import {
   User,
   Search,
@@ -9,16 +9,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsRight,
+  Package,
+  Hotel,
+  UndoIcon,
 } from "lucide-react";
-
-interface MessData {
-  id: string;
-  name: string;
-  address: string;
-  phone?: string;
-  status: "active" | "inactive";
-  created_at: string;
-}
+import MessAddModal from "@/components/modal/MessAddModal";
+import { MessData } from "@/types";
 
 interface ApiResponse {
   messes: MessData[];
@@ -41,9 +37,10 @@ const MessContent = () => {
     field: string;
     direction: "asc" | "desc";
   }>({ field: "created_at", direction: "desc" });
-
   const [massAddIsOpen, setMassAddIsOpen] = useState<boolean>(false);
-
+  const [selectedMess, setSelectedMess] = useState<MessData | undefined>(
+    undefined
+  );
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -283,11 +280,24 @@ const MessContent = () => {
                 {messes.length > 0 ? (
                   messes.map((mess) => (
                     <tr key={mess.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {mess.name}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                            <Hotel className="text-gray-500" size={20} />
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {mess.name}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              ID: {mess.id}
+                            </div>
+                          </div>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {mess.address}
+                        {mess.address.street} {mess.address.area}{" "}
+                        {mess.address.city} {mess.address.postalCode}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {mess.phone || "-"}
@@ -304,10 +314,18 @@ const MessContent = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(mess.created_at).toLocaleDateString()}
+                        {mess.created_at
+                          ? new Date(mess.created_at).toLocaleDateString()
+                          : "-"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-blue-600 hover:text-blue-900 mr-3">
+                        <button
+                          className="text-blue-600 hover:text-blue-900 mr-3"
+                          onClick={() => {
+                            setSelectedMess(mess);
+                            setMassAddIsOpen(true);
+                          }}
+                        >
                           Edit
                         </button>
                         <button className="text-red-600 hover:text-red-900">
@@ -360,6 +378,14 @@ const MessContent = () => {
           )}
         </div>
       )}
+      <MessAddModal
+        open={massAddIsOpen}
+        onClose={() => {
+          setSelectedMess(undefined);
+          setMassAddIsOpen(false);
+        }}
+        selectedMess={selectedMess}
+      />
     </div>
   );
 };

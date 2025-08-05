@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Modal from "./Modal";
 import api from "@/utils/api";
+import axios, { AxiosError } from "axios";
 
 interface ErrorDetails {
   details: string;
@@ -66,11 +67,16 @@ const CategoryAddModal: React.FC<CategoryAddModalProps> = ({
         onSuccess(res.data.id);
         handleClose();
       }
-    } catch (err) {
-      console.error("Category creation failed", err);
-      setErrors({
-        label: { details: "Something went wrong while adding the category." },
-      });
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        setErrors({
+          label: { details: err.response?.data.detail },
+        });
+      } else {
+        setErrors({
+          label: { details: "Unexpected error" },
+        });
+      }
     } finally {
       setIsLoading({ formSubmit: false });
     }
@@ -114,9 +120,6 @@ const CategoryAddModal: React.FC<CategoryAddModalProps> = ({
                 <span className="text-gray-400">🏷️</span>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-1 pl-1">
-              You can use text and emojis 😊
-            </p>
             {errors.label && touched.label && (
               <p className="text-red-600 text-sm flex items-center gap-1">
                 <span>⚠️</span> {errors.label.details}

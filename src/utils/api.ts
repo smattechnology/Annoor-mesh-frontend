@@ -13,7 +13,31 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // include cookies if needed
+  withCredentials: true,
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+
+    if (status === 401) {
+      const currentPath = window.location.pathname;
+
+      if (currentPath !== "/auth") {
+        console.warn("🔐 Unauthorized: Redirecting to /auth");
+        window.location.href = "/auth";
+      } else {
+        console.warn("🔐 Unauthorized: Already on /auth, not redirecting.");
+      }
+
+      document.dispatchEvent(new Event("unauthorized"));
+
+      return Promise.reject(error);
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export default api;

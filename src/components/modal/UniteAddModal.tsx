@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Modal from "./Modal";
 import api from "@/utils/api"; // make sure your API utility is correctly imported
+import axios from "axios";
 
 interface ErrorDetails {
   details: string;
@@ -83,11 +84,16 @@ const UniteAddModal: React.FC<UniteAddModalProps> = ({
         onSuccess(res.data.id);
         handleClose();
       }
-    } catch (err) {
-      console.error("Unit creation failed", err);
-      setErrors({
-        label: { details: "Something went wrong while adding the unit." },
-      });
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        setErrors({
+          label: { details: err.response?.data.detail },
+        });
+      } else {
+        setErrors({
+          label: { details: "Unexpected error" },
+        });
+      }
     } finally {
       setIsLoading((prev) => ({ ...prev, formSubmit: false }));
     }
