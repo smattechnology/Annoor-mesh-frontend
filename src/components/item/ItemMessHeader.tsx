@@ -1,30 +1,19 @@
 import { BUDGET_THRESHOLDS, MESS_INFO } from "@/constants";
-import { BudgetStatus, CategoryMap } from "@/types";
+import { BudgetStatus, SelectedItems } from "@/types";
 import { Calculator, DollarSign, Users } from "lucide-react";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { BudgetSummary } from "./BudgetSummary";
 
 interface ItemMessHeaderProps {
-  budgetPerStudent: number;
-  setBudgetPerStudent: (val: number) => void;
-  totalStudents: number;
-  setTotalStudents: (val: number) => void;
-  totalBudget: number;
-  setTotalBudget: (val: number) => void;
-  totalPrice: number;
-  selectedData: CategoryMap;
+  selectedItems: SelectedItems;
 }
 
-const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
-  budgetPerStudent,
-  setBudgetPerStudent,
-  totalStudents,
-  setTotalStudents,
-  totalBudget,
-  setTotalBudget,
-  totalPrice,
-  selectedData,
-}) => {
+const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({ selectedItems }) => {
+  const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [budgetPerStudent, setBudgetPerStudent] = useState<number>(0);
+  const [totalStudents, setTotalStudents] = useState<number>(0);
+  const [totalBudget, setTotalBudget] = useState<number>(0);
+
   useEffect(() => {
     setTotalBudget(
       (budgetPerStudent ? budgetPerStudent : 0) *
@@ -54,19 +43,24 @@ const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
 
   const getSelectedItemCount = useMemo(() => {
     let count = 0;
+    let total = 0;
 
-    Object.values(selectedData).forEach((category) => {
-      Object.values(category.items).forEach((item) => {
-        const bld = item.bld;
-        const price = (item.pp ?? 0) > 0;
-        if (price && (bld?.breakfast || bld?.lunch || bld?.dinner)) {
-          count += 1;
-        }
-      });
+    Object.values(selectedItems).forEach((item) => {
+      const price = item.price ?? 0;
+      if (price > 0) {
+        count += 1;
+        const mealTime =
+          (item.bld?.breakfast ? 1 : 0) +
+          (item.bld?.lunch ? 1 : 0) +
+          (item.bld?.dinner ? 1 : 0);
+        const subTotal = price * mealTime;
+        total += subTotal;
+      }
     });
-
+    setTotalPrice(total);
     return count;
-  }, [selectedData]);
+  }, [selectedItems]);
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
       {/* Header Section */}

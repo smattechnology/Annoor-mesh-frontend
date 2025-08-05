@@ -18,41 +18,6 @@ export interface MealTime {
   dinner?: boolean;
   editable?: boolean;
 }
-
-/**
- * Represents a food item with pricing and meal time information
- */
-export interface Item {
-  id: number;
-  name: string;
-  price: number;
-  unite: string;
-  bld?: MealTime;
-  pp?: number; // price per portion, initialized to 0
-}
-
-/**
- * Represents a category containing multiple food items
- */
-export interface Category {
-  id: number;
-  title: string;
-  items: Item[];
-}
-
-export type ItemMap = Record<number, Item>;
-export type CategoryMap = Record<
-  number,
-  { id: number; title: string; items: ItemMap }
->;
-
-export type BudgetStatus =
-  | "no-budget"
-  | "over-budget"
-  | "high-utilization"
-  | "low-remaining"
-  | "normal";
-
 export type Product = {
   id: string;
   name: string;
@@ -72,9 +37,30 @@ export type Product = {
     created_at: string;
     updated_at: string;
   };
+  bld?: MealTime;
+  pp?: number; // price per portion, initialized to 0
   created_at: string;
   updated_at: string;
 };
+export interface Category {
+  id: string;
+  label: string;
+  icon: string;
+  products: Product[];
+}
+export interface SelectedItems {
+  [productId: string]: {
+    bld?: MealTime;
+    price?: number;
+  };
+}
+
+export type BudgetStatus =
+  | "no-budget"
+  | "over-budget"
+  | "high-utilization"
+  | "low-remaining"
+  | "normal";
 
 export interface MessAddress {
   id?: string;
