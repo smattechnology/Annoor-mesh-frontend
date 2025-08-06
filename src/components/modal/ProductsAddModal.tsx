@@ -176,9 +176,9 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
 
     const payload = {
       name: name.trim(),
-      price: parseFloat(price.toString()),
+      price: parseInt(price.toString()),
       unite_id: unit,
-      category_id: category || undefined,
+      category_id: category,
       description: description?.trim() || undefined,
     };
 
