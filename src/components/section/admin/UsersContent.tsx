@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import UserAddModal from "@/components/modal/UserAddModal";
 import { UserData } from "@/types";
+import api from "@/utils/api";
 
 interface ApiResponse {
   users: UserData[];
@@ -64,15 +65,13 @@ const UsersContent = () => {
         search: debouncedSearchTerm,
       });
 
-      const response = await fetch(
-        `http://localhost:1024/user/all?${params.toString()}`
-      );
+      const req = await api.get(`/user/all?${params.toString()}`);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (req.status !== 200) {
+        throw new Error(`HTTP error! status: ${req.data.detail}`);
       }
 
-      const data: ApiResponse = await response.json();
+      const data: ApiResponse = req.data;
 
       setUsers(data.users);
       setTotalUsers(data.total);
