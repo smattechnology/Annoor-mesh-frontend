@@ -9,6 +9,7 @@ interface ModalProps {
   showCloseButton?: boolean;
   closeOnBackdrop?: boolean;
   className?: string;
+  header?: boolean;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -20,6 +21,7 @@ const Modal: React.FC<ModalProps> = ({
   showCloseButton = true,
   closeOnBackdrop = true,
   className = "",
+  header = false,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
@@ -119,7 +121,7 @@ const Modal: React.FC<ModalProps> = ({
           aria-labelledby={title ? "modal-title" : undefined}
         >
           {/* Header */}
-          {(title || showCloseButton) && (
+          {header && (title || showCloseButton) && (
             <div className="flex items-center justify-between p-6 pb-0">
               {title && (
                 <h2

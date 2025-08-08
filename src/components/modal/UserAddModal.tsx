@@ -1,13 +1,37 @@
 import React, { useState, useEffect } from "react";
+import {
+  Eye,
+  EyeOff,
+  User,
+  Mail,
+  Lock,
+  Crown,
+  Users,
+  Calendar,
+  MapPin,
+  Sparkles,
+  Save,
+  X,
+  Check,
+  Building2,
+} from "lucide-react";
 import Modal from "./Modal";
-import { UserData } from "@/types";
+import MessSearchInput from "../autocomplete/MessSearchInput";
+import { MessData } from "@/types";
 import api from "@/utils/api";
 
-interface UserAddModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit?: (userData: UserFormData) => void;
-  selectedUser?: UserData;
+interface UserData {
+  id?: string;
+  username: string;
+  email: string;
+  role: string;
+  status: string;
+  name?: string;
+  dob?: string;
+  address?: string;
+  created_at?: string;
+  updated_at?: string;
+  allocated_mess?: MessData;
 }
 
 interface UserFormData {
@@ -21,10 +45,15 @@ interface UserFormData {
   address?: string;
 }
 
+interface UserAddModalProps {
+  open: boolean;
+  onClose: () => void;
+  selectedUser?: UserData;
+}
+
 const UserAddModal: React.FC<UserAddModalProps> = ({
   open,
   onClose,
-  onSubmit,
   selectedUser,
 }) => {
   const [formData, setFormData] = useState<UserFormData>({
@@ -43,6 +72,18 @@ const UserAddModal: React.FC<UserAddModalProps> = ({
     Partial<Record<keyof UserFormData, boolean>>
   >({});
   const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState("basic");
+  const [mess, setMess] = useState("");
+  const [searchFound, setSearchFound] = useState<boolean>(false);
+  const [autoCompleteEnabled, setAutoCompleteEnabled] =
+    useState<boolean>(false);
+
+  // Tab configuration
+  const tabs = [
+    { id: "basic", label: "Basic Info", icon: User },
+    { id: "permissions", label: "Role & Status", icon: Crown },
+    { id: "details", label: "Personal Details", icon: MapPin },
+  ];
 
   useEffect(() => {
     if (selectedUser) {
@@ -56,27 +97,66 @@ const UserAddModal: React.FC<UserAddModalProps> = ({
         dob: selectedUser.dob || "",
         address: selectedUser.address || "",
       });
+      if (selectedUser.allocated_mess) {
+        setMess(selectedUser.allocated_mess.name);
+        setAutoCompleteEnabled(false);
+      }
     }
   }, [selectedUser]);
 
-  // Role options from backend RoleEnum
   const roles = [
-    { value: "admin", label: "অ্যাডমিন (Admin)", icon: "👑" },
-    { value: "user", label: "ব্যবহারকারী (User)", icon: "👤" },
+    {
+      value: "admin",
+      label: "অ্যাডমিন",
+      subtitle: "Admin",
+      icon: Crown,
+      color: "from-purple-500 to-pink-500",
+      description: "Full system access",
+    },
+    {
+      value: "user",
+      label: "ব্যবহারকারী",
+      subtitle: "User",
+      icon: User,
+      color: "from-blue-500 to-cyan-500",
+      description: "Standard user access",
+    },
   ];
 
-  // Status options from backend StatusEnum
   const statusOptions = [
-    { value: "active", label: "সক্রিয় (Active)", icon: "✅" },
-    { value: "disabled", label: "নিষ্ক্রিয় (Disabled)", icon: "⏸️" },
-    { value: "deleted", label: "মুছে ফেলা (Deleted)", icon: "🗑️" },
-    { value: "banned", label: "নিষিদ্ধ (Banned)", icon: "🚫" },
+    {
+      value: "active",
+      label: "সক্রিয়",
+      subtitle: "Active",
+      color: "bg-green-100 text-green-800 border-green-200",
+      dot: "bg-green-400",
+    },
+    {
+      value: "disabled",
+      label: "নিষ্ক্রিয়",
+      subtitle: "Disabled",
+      color: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      dot: "bg-yellow-400",
+    },
+    {
+      value: "deleted",
+      label: "মুছে ফেলা",
+      subtitle: "Deleted",
+      color: "bg-red-100 text-red-800 border-red-200",
+      dot: "bg-red-400",
+    },
+    {
+      value: "banned",
+      label: "নিষিদ্ধ",
+      subtitle: "Banned",
+      color: "bg-gray-100 text-gray-800 border-gray-200",
+      dot: "bg-gray-400",
+    },
   ];
 
   const validateForm = (): boolean => {
     const newErrors: Partial<UserFormData> = {};
 
-    // Username validation
     if (!formData.username.trim()) {
       newErrors.username = "Username is required";
     } else if (formData.username.trim().length < 3) {
@@ -86,7 +166,6 @@ const UserAddModal: React.FC<UserAddModalProps> = ({
         "Username can only contain letters, numbers, and underscores";
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
@@ -94,19 +173,16 @@ const UserAddModal: React.FC<UserAddModalProps> = ({
       newErrors.email = "Please enter a valid email address";
     }
 
-    // Password validation
-    if (!formData.password) {
+    if (!selectedUser && !formData.password) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
+    } else if (formData.password && formData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
 
-    // Role validation
     if (!formData.role) {
       newErrors.role = "Role is required";
     }
 
-    // Status validation
     if (!formData.status) {
       newErrors.status = "Status is required";
     }
@@ -117,8 +193,6 @@ const UserAddModal: React.FC<UserAddModalProps> = ({
 
   const handleInputChange = (field: keyof UserFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
@@ -131,29 +205,6 @@ const UserAddModal: React.FC<UserAddModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      setIsLoading(true);
-      const payload = {
-        id: selectedUser?.id,
-        email: selectedUser?.email != formData.email ? formData.email : "",
-        role: selectedUser?.role != formData.role ? formData.role : "",
-        status: selectedUser?.status != formData.status ? formData.status : "",
-        name: selectedUser?.name != formData.name ? formData.name : "",
-        dob: selectedUser?.dob != formData.dob ? formData.dob : "",
-        address:
-          selectedUser?.address != formData.address ? formData.address : "",
-      };
-      const res = await api.post("/user/update", payload);
-      if (res.status == 200) {
-        const data = res.data;
-        console.log(data);
-      }
-    } catch (err: any) {
-    } finally {
-      setIsLoading(false);
-    }
-
-    // Mark all required fields as touched for validation display
     setTouched({
       username: true,
       email: true,
@@ -166,24 +217,14 @@ const UserAddModal: React.FC<UserAddModalProps> = ({
     });
 
     if (validateForm()) {
-      // Reset form on successful submission
-      setFormData({
-        username: "",
-        email: "",
-        password: "",
-        role: "user",
-        status: "active",
-        name: "",
-        dob: "",
-        address: "",
-      });
-      setTouched({});
-      setErrors({});
+      setIsLoading(true);
+
+      setIsLoading(false);
+      handleClose();
     }
   };
 
   const handleClose = () => {
-    // Reset form when closing
     setFormData({
       username: "",
       email: "",
@@ -194,361 +235,424 @@ const UserAddModal: React.FC<UserAddModalProps> = ({
       dob: "",
       address: "",
     });
+    setMess("");
+    setIsLoading(false);
+    setSearchFound(false);
+    setAutoCompleteEnabled(false);
     setTouched({});
     setErrors({});
+    setActiveTab("basic");
     onClose();
   };
 
-  return (
-    <Modal open={open} onClose={handleClose} size="xxxl" title="Add New User">
-      <div className="h-full max-h-[85vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
-        <form onSubmit={handleSubmit} className="space-y-6 p-2">
-          {/* Account Information Section */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="text-blue-600">🔐</span>
-              Account Information
-            </h3>
+  const handleAutocompleteSelect = async (mess?: MessData) => {
+    if (mess) {
+      setMess(mess.name);
+      setSearchFound(true);
+      setAutoCompleteEnabled(false);
+      if (selectedUser) {
+        const req = await api.post(
+          `/user/update/mess?user_id=${selectedUser.id}&mess_id=${mess.id}`
+        );
+        if (req.status === 200) {
+          handleClose();
+        }
+      }
+    }
+  };
 
-            {/* Email */}
-            <div className="space-y-2 mb-4">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Email Address <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
+  if (!open) return null;
+
+  return (
+    <Modal open={open} onClose={handleClose} size="xl">
+      {/* <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col"> */}
+      {/* Header */}
+      <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+            <Users className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">
+              {selectedUser ? "Update User" : "Add New User"}
+            </h2>
+            <p className="text-sm text-gray-500">
+              {selectedUser
+                ? "Modify user details and permissions"
+                : "Fill in the details to register a new user"}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={handleClose}
+          disabled={isLoading}
+          className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors disabled:opacity-50"
+        >
+          <X className="w-4 h-4 text-gray-600" />
+        </button>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="flex overflow-x-auto border-b border-gray-200 px-6">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              disabled={isLoading}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${
+                activeTab === tab.id
+                  ? "text-indigo-600 border-indigo-600"
+                  : "text-gray-500 border-transparent hover:text-gray-700"
+              } disabled:opacity-50`}
+            >
+              <Icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="space-y-6">
+          {/* Basic Info Tab */}
+          {activeTab === "basic" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Username */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <User className="w-4 h-4 mr-2 text-indigo-500" />
+                  Username *
+                </label>
+                <input
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) =>
+                    handleInputChange("username", e.target.value)
+                  }
+                  onBlur={() => handleBlur("username")}
+                  disabled={isLoading}
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                    errors.username && touched.username
+                      ? "border-red-300"
+                      : "border-gray-300"
+                  }`}
+                  placeholder="Enter username"
+                />
+                {errors.username && touched.username && (
+                  <p className="text-red-500 text-sm">{errors.username}</p>
+                )}
+              </div>
+
+              {/* Email */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <Mail className="w-4 h-4 mr-2 text-indigo-500" />
+                  Email Address *
+                </label>
                 <input
                   type="email"
-                  id="email"
-                  name="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   onBlur={() => handleBlur("email")}
-                  placeholder="user@example.com"
-                  className={`
-                  block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200
-                  placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                  ${
+                  disabled={isLoading}
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
                     errors.email && touched.email
-                      ? "border-red-300 bg-red-50 focus:border-red-500"
-                      : "border-gray-200 focus:border-blue-500 bg-white"
-                  }
-                `}
+                      ? "border-red-300"
+                      : "border-gray-300"
+                  }`}
+                  placeholder="Enter email address"
                 />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <span className="text-gray-400">📧</span>
-                </div>
+                {errors.email && touched.email && (
+                  <p className="text-red-500 text-sm">{errors.email}</p>
+                )}
               </div>
-              {errors.email && touched.email && (
-                <p className="text-red-600 text-sm flex items-center gap-1">
-                  <span className="text-red-500">⚠️</span>
-                  {errors.email}
-                </p>
+
+              {/* Password */}
+              {!selectedUser ? (
+                <div className="md:col-span-2 space-y-2">
+                  <label className="flex items-center text-sm font-medium text-gray-700">
+                    <Lock className="w-4 h-4 mr-2 text-indigo-500" />
+                    Password *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={(e) =>
+                        handleInputChange("password", e.target.value)
+                      }
+                      onBlur={() => handleBlur("password")}
+                      disabled={isLoading}
+                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                        errors.password && touched.password
+                          ? "border-red-300"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="Enter password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-indigo-500 transition-colors"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && touched.password && (
+                    <p className="text-red-500 text-sm">{errors.password}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="md:col-span-2 space-y-2">
+                  <label className="flex items-center text-sm font-medium text-gray-700">
+                    <Lock className="w-4 h-4 mr-2 text-indigo-500" />
+                    Allocated Mess
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={mess}
+                      onChange={(e) => {
+                        setAutoCompleteEnabled(true);
+                        setMess(e.target.value);
+                      }}
+                      disabled={isLoading}
+                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors border-gray-300`}
+                      placeholder="Enter mess name"
+                    />
+                    <MessSearchInput
+                      input={mess}
+                      onSelectProduct={handleAutocompleteSelect}
+                      setIsFound={(found) => setSearchFound(found)}
+                      enable={autoCompleteEnabled}
+                    />
+                  </div>
+                </div>
               )}
             </div>
+          )}
 
-            {/* Username and Password Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Username */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="username"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Username <span className="text-red-500">*</span>
+          {/* Role & Status Tab */}
+          {activeTab === "permissions" && (
+            <div className="space-y-8">
+              {/* Role Selection */}
+              <div className="space-y-4">
+                <label className="text-sm font-medium text-gray-700 flex items-center">
+                  <Crown className="w-4 h-4 mr-2 text-indigo-500" />
+                  User Role *
                 </label>
-                <div className="relative">
-                  <input
-                    disabled={selectedUser?.username ? true : false}
-                    type="text"
-                    id="username"
-                    name="username"
-                    value={formData.username}
-                    onChange={(e) =>
-                      handleInputChange("username", e.target.value)
-                    }
-                    onBlur={() => handleBlur("username")}
-                    placeholder="Enter unique username"
-                    className={`
-                  block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200
-                  placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                  ${
-                    errors.username && touched.username
-                      ? "border-red-300 bg-red-50 focus:border-red-500"
-                      : "border-gray-200 focus:border-blue-500 bg-white"
-                  }
-                `}
-                  />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    <span className="text-gray-400">👤</span>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {roles.map((role) => (
+                    <div
+                      key={role.value}
+                      onClick={() => handleInputChange("role", role.value)}
+                      className={`
+                          relative p-6 border-2 rounded-2xl cursor-pointer transition-all duration-300 hover:shadow-lg
+                          ${
+                            formData.role === role.value
+                              ? "border-indigo-500 bg-indigo-50 shadow-md"
+                              : "border-gray-200 hover:border-indigo-300"
+                          }
+                        `}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div
+                          className={`p-3 rounded-xl bg-gradient-to-r ${role.color}`}
+                        >
+                          <role.icon className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-800">
+                            {role.label}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {role.subtitle}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {role.description}
+                          </p>
+                        </div>
+                      </div>
+                      {formData.role === role.value && (
+                        <div className="absolute top-4 right-4">
+                          <div className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center">
+                            <Check className="w-4 h-4 text-white" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                {errors.username && touched.username && (
-                  <p className="text-red-600 text-sm flex items-center gap-1">
-                    <span className="text-red-500">⚠️</span>
-                    {errors.username}
-                  </p>
-                )}
               </div>
-              {/* Password */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Password <span className="text-red-500">*</span>
+
+              {/* Status Selection */}
+              <div className="space-y-4">
+                <label className="text-sm font-medium text-gray-700 flex items-center">
+                  <Sparkles className="w-4 h-4 mr-2 text-indigo-500" />
+                  Account Status *
                 </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      handleInputChange("password", e.target.value)
-                    }
-                    onBlur={() => handleBlur("password")}
-                    placeholder="Enter secure password"
-                    className={`
-                    block w-full px-4 py-3 pr-12 rounded-xl border-2 transition-all duration-200
-                    placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                    ${
-                      errors.password && touched.password
-                        ? "border-red-300 bg-red-50 focus:border-red-500"
-                        : "border-gray-200 focus:border-blue-500 bg-white"
-                    }
-                  `}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-                  >
-                    <span>{showPassword ? "🙈" : "👁️"}</span>
-                  </button>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {statusOptions.map((status) => (
+                    <div
+                      key={status.value}
+                      onClick={() => handleInputChange("status", status.value)}
+                      className={`
+                          relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-300 hover:shadow-md
+                          ${
+                            formData.status === status.value
+                              ? `${status.color} border-current shadow-sm`
+                              : "border-gray-200 hover:border-gray-300"
+                          }
+                        `}
+                    >
+                      <div className="text-center">
+                        <div
+                          className={`w-4 h-4 rounded-full ${status.dot} mx-auto mb-2`}
+                        ></div>
+                        <h5 className="font-semibold text-sm">
+                          {status.label}
+                        </h5>
+                        <p className="text-xs text-gray-600">
+                          {status.subtitle}
+                        </p>
+                      </div>
+                      {formData.status === status.value && (
+                        <div className="absolute -top-1 -right-1">
+                          <div className="w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
+                            <Check className="w-3 h-3 text-white" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                {errors.password && touched.password && (
-                  <p className="text-red-600 text-sm flex items-center gap-1">
-                    <span className="text-red-500">⚠️</span>
-                    {errors.password}
-                  </p>
-                )}
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Personal Information Section */}
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="text-green-600">👤</span>
-              Personal Information
-            </h3>
-
-            {/* Date of Birth and Address Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Display Name */}
-              <div className="space-y-2 mb-4">
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Display Name
+          {/* Personal Details Tab */}
+          {activeTab === "details" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Full Name */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <User className="w-4 h-4 mr-2 text-indigo-500" />
+                  Full Name
                 </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Enter display name (optional)"
-                    className="block w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 bg-white placeholder-gray-400"
-                  />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    <span className="text-gray-400">🏷️</span>
-                  </div>
-                </div>
+                <input
+                  type="text"
+                  value={formData.name || ""}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                  placeholder="Enter full name"
+                />
               </div>
+
               {/* Date of Birth */}
               <div className="space-y-2">
-                <label
-                  htmlFor="dob"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <Calendar className="w-4 h-4 mr-2 text-indigo-500" />
                   Date of Birth
                 </label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    id="dob"
-                    name="dob"
-                    value={formData.dob}
-                    onChange={(e) => handleInputChange("dob", e.target.value)}
-                    className="block w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 bg-white"
-                  />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <span className="text-gray-400">📅</span>
-                  </div>
-                </div>
+                <input
+                  type="date"
+                  value={formData.dob || ""}
+                  onChange={(e) => handleInputChange("dob", e.target.value)}
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                />
               </div>
-            </div>
-            {/* Address */}
-            <div className="space-y-2">
-              <label
-                htmlFor="address"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Address
-              </label>
-              <input
-                type="text"
-                id="address"
-                name="address"
-                value={formData.address}
-                onChange={(e) => handleInputChange("address", e.target.value)}
-                placeholder="Enter address (optional)"
-                className="block w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 bg-white placeholder-gray-400"
-              />
-            </div>
-          </div>
 
-          {/* System Settings Section */}
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="text-purple-600">⚙️</span>
-              System Settings
-            </h3>
-
-            {/* Role and Status Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Role */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="role"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Role <span className="text-red-500">*</span>
+              {/* Address */}
+              <div className="md:col-span-2 space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <MapPin className="w-4 h-4 mr-2 text-indigo-500" />
+                  Address
                 </label>
-                <div className="relative">
-                  <select
-                    id="role"
-                    name="role"
-                    value={formData.role}
-                    onChange={(e) => handleInputChange("role", e.target.value)}
-                    onBlur={() => handleBlur("role")}
-                    style={{
-                      scrollbarWidth: "thin",
-                      scrollbarColor: "#cbd5e1 #f1f5f9",
-                    }}
-                    className={`
-                    block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                    [&>option]:py-2 [&>option]:px-3 [&>option]:bg-white [&>option]:text-gray-900
-                    [&>option:hover]:bg-blue-50 [&>option:checked]:bg-blue-100 [&>option:checked]:text-blue-900
-                    ${
-                      errors.role && touched.role
-                        ? "border-red-300 bg-red-50 focus:border-red-500"
-                        : "border-gray-200 focus:border-blue-500 bg-white"
-                    }
-                  `}
-                  >
-                    {roles.map((role) => (
-                      <option key={role.value} value={role.value}>
-                        {role.icon} {role.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {errors.role && touched.role && (
-                  <p className="text-red-600 text-sm flex items-center gap-1">
-                    <span className="text-red-500">⚠️</span>
-                    {errors.role}
-                  </p>
-                )}
-              </div>
-
-              {/* Status */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="status"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Status <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <select
-                    id="status"
-                    name="status"
-                    value={formData.status}
-                    onChange={(e) =>
-                      handleInputChange("status", e.target.value)
-                    }
-                    onBlur={() => handleBlur("status")}
-                    style={{
-                      scrollbarWidth: "thin",
-                      scrollbarColor: "#cbd5e1 #f1f5f9",
-                    }}
-                    className={`
-                    block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                    [&>option]:py-2 [&>option]:px-3 [&>option]:bg-white [&>option]:text-gray-900
-                    [&>option:hover]:bg-blue-50 [&>option:checked]:bg-blue-100 [&>option:checked]:text-blue-900
-                    ${
-                      errors.status && touched.status
-                        ? "border-red-300 bg-red-50 focus:border-red-500"
-                        : "border-gray-200 focus:border-blue-500 bg-white"
-                    }
-                  `}
-                  >
-                    {statusOptions.map((status) => (
-                      <option key={status.value} value={status.value}>
-                        {status.icon} {status.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {errors.status && touched.status && (
-                  <p className="text-red-600 text-sm flex items-center gap-1">
-                    <span className="text-red-500">⚠️</span>
-                    {errors.status}
-                  </p>
-                )}
+                <textarea
+                  value={formData.address || ""}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                  disabled={isLoading}
+                  rows={3}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none"
+                  placeholder="Enter complete address"
+                />
               </div>
             </div>
-          </div>
+          )}
+        </div>
+      </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+      {/* Footer */}
+      <div className="flex items-center justify-end p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={() => {
+              const currentIndex = tabs.findIndex(
+                (tab) => tab.id === activeTab
+              );
+              if (currentIndex > 0) {
+                setActiveTab(tabs[currentIndex - 1].id);
+              } else {
+                handleClose();
+              }
+            }}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            {activeTab === tabs[0].id ? "Cancel" : "Previous"}
+          </button>
+
+          {activeTab === tabs[tabs.length - 1].id ? (
             <button
               type="button"
-              onClick={handleClose}
               disabled={isLoading}
-              className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
+              onClick={handleSubmit}
+              className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg hover:from-indigo-600 hover:to-purple-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all disabled:opacity-50 flex items-center space-x-2"
             >
               {isLoading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Creating User...
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>{selectedUser ? "Updating..." : "Creating..."}</span>
                 </>
               ) : (
                 <>
-                  <span>👥</span>
-                  Create User
+                  <Save className="w-4 h-4" />
+                  <span>{selectedUser ? "Update User" : "Create User"}</span>
                 </>
               )}
             </button>
-          </div>
-        </form>
+          ) : (
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={() => {
+                const currentIndex = tabs.findIndex(
+                  (tab) => tab.id === activeTab
+                );
+                if (currentIndex < tabs.length - 1) {
+                  setActiveTab(tabs[currentIndex + 1].id);
+                }
+              }}
+              className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all disabled:opacity-50"
+            >
+              Next
+            </button>
+          )}
+        </div>
       </div>
+      {/* </div>
+      </div> */}
     </Modal>
   );
 };

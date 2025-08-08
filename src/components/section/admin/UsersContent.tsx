@@ -208,7 +208,10 @@ const UsersContent = () => {
     <div>
       <UserAddModal
         open={userAddIsOpen}
-        onClose={() => setUserAddIsOpen(false)}
+        onClose={() => {
+          setSelectedUser(undefined);
+          setUserAddIsOpen(false);
+        }}
         selectedUser={selectedUser}
       />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
@@ -221,6 +224,10 @@ const UsersContent = () => {
             />
             <input
               type="text"
+              name="search"
+              id="search"
+              autoComplete="off"
+              autoFocus={false}
               placeholder="Search users..."
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
               value={searchTerm}

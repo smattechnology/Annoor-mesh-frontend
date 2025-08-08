@@ -3,7 +3,7 @@ import Modal from "./Modal";
 import api from "@/utils/api";
 import UniteAddModal from "./UniteAddModal";
 import CategoryAddModal from "./CategoryAddModal";
-import ProductSearchInput from "../ProductSearchInput";
+import ProductSearchInput from "../autocomplete/ProductSearchInput";
 import { Product } from "@/types";
 
 interface ProductsAddModalProps {
@@ -223,6 +223,7 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
         onClose={handleClose}
         size="lg"
         title="Add New Product"
+        header
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Product Name */}

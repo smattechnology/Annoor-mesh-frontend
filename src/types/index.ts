@@ -10,6 +10,7 @@ export interface UserData {
   created_at: string;
   update_at: string;
   avatar?: string;
+  allocated_mess?: MessData;
 }
 
 export interface MealTime {
