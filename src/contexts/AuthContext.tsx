@@ -8,20 +8,13 @@ import React, {
 } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/utils/api"; // update this path based on your file structure
+import { UserData } from "@/types";
 
 // Define your user structure
-interface User {
-  id: string;
-  name: string;
-  username: string;
-  email: string;
-  role: string;
-  status: string;
-}
 
 // Context value interface
 interface AuthContextType {
-  user: User | null;
+  user: UserData | null;
   logout: () => void;
   getAuth: () => void;
   isLoading: boolean;
@@ -36,7 +29,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 

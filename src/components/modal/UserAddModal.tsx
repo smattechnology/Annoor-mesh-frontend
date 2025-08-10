@@ -316,7 +316,7 @@ const UserAddModal: React.FC<UserAddModalProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <form autoComplete="off" className="flex-1 overflow-y-auto p-6">
         <div className="space-y-6">
           {/* Basic Info Tab */}
           {activeTab === "basic" && (
@@ -329,6 +329,8 @@ const UserAddModal: React.FC<UserAddModalProps> = ({
                 </label>
                 <input
                   type="text"
+                  name="username"
+                  id="username"
                   value={formData.username}
                   onChange={(e) =>
                     handleInputChange("username", e.target.value)
@@ -355,6 +357,8 @@ const UserAddModal: React.FC<UserAddModalProps> = ({
                 </label>
                 <input
                   type="email"
+                  name="email"
+                  id="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   onBlur={() => handleBlur("email")}
@@ -381,6 +385,9 @@ const UserAddModal: React.FC<UserAddModalProps> = ({
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
+                      name="password"
+                      id="password"
+                      autoComplete="off"
                       value={formData.password}
                       onChange={(e) =>
                         handleInputChange("password", e.target.value)
@@ -590,7 +597,7 @@ const UserAddModal: React.FC<UserAddModalProps> = ({
             </div>
           )}
         </div>
-      </div>
+      </form>
 
       {/* Footer */}
       <div className="flex items-center justify-end p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">

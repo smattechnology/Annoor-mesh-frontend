@@ -1,12 +1,13 @@
 "use client";
-import { BUDGET_THRESHOLDS, MESS_INFO } from "@/constants";
+import { BUDGET_THRESHOLDS } from "@/constants";
 import { Category, MealTime, SelectedItems } from "@/types";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import ProductSection from "@/components/item/ProductSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import ItemMessHeader from "@/components/item/ItemMessHeader";
 import api from "@/utils/api";
+import { Loader } from "lucide-react";
 
 export default function Page() {
   const [data, setData] = useState<Category[] | []>([]);
@@ -113,9 +114,14 @@ export default function Page() {
     console.log(data);
   };
 
-  return (
+  return isLoading ? (
+    <div className="w-full h-screen flex flex-col items-center justify-center">
+      <Loader className="animate-spin h-8 w-8 text-blue-500" />
+    </div>
+  ) : user?.allocated_mess ? (
     <div className="w-ful lg:max-w-7xl mx-auto">
       <ItemMessHeader
+        messInfo={user.allocated_mess}
         selectedItems={selectedItems}
         setBudgetPerStudent={setMealBudget}
         setTotalStudents={setTotalMeal}
@@ -137,6 +143,13 @@ export default function Page() {
         toggleMeal={toggleMeal}
         onPriceChange={setPortionPrice}
       />
+    </div>
+  ) : (
+    <div className="w-ful h-full lg:max-w-7xl mx-auto">
+      <div className="w-full h-full flex flex-col items-center justify-center">
+        <h2>No Mess Allocated for you</h2>
+        <p>please contact admin</p>
+      </div>
     </div>
   );
 }

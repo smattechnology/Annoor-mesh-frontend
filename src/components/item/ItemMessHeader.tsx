@@ -1,5 +1,5 @@
-import { BUDGET_THRESHOLDS, MESS_INFO } from "@/constants";
-import { BudgetStatus, SelectedItems } from "@/types";
+import { BUDGET_THRESHOLDS } from "@/constants";
+import { BudgetStatus, MessData, SelectedItems } from "@/types";
 import { Calculator, DollarSign, Users } from "lucide-react";
 import React, {
   Dispatch,
@@ -11,6 +11,7 @@ import React, {
 import { BudgetSummary } from "./BudgetSummary";
 
 interface ItemMessHeaderProps {
+  messInfo: MessData;
   selectedItems: SelectedItems;
   budgetPerStudent: number;
   totalStudents: number;
@@ -19,6 +20,7 @@ interface ItemMessHeaderProps {
 }
 
 const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
+  messInfo,
   selectedItems,
   budgetPerStudent,
   totalStudents,
@@ -81,10 +83,10 @@ const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 text-white">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h2 className="text-2xl font-bold">{MESS_INFO.name}</h2>
+            <h2 className="text-2xl font-bold">{messInfo.name}</h2>
           </div>
           <div className="text-right">
-            <p className="text-sm text-blue-100">Capacity</p>
+            {/* <p className="text-sm text-blue-100">Capacity</p> */}
           </div>
         </div>
       </div>
@@ -108,18 +110,18 @@ const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
               <div className="flex justify-between">
                 <span className="text-gray-600">Address:</span>
                 <span className="text-right max-w-48 text-gray-900">
-                  {MESS_INFO.address.street}, {MESS_INFO.address.area}
+                  {messInfo.address.street}, {messInfo.address.area}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">City:</span>
                 <span className="text-gray-900">
-                  {MESS_INFO.address.city} - {MESS_INFO.address.postalCode}
+                  {messInfo.address.city} - {messInfo.address.postalCode}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Contact:</span>
-                <span className="text-gray-900">{MESS_INFO.phone}</span>
+                <span className="text-gray-900">{messInfo.phone}</span>
               </div>
             </div>
           </div>
