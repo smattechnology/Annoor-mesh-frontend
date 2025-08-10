@@ -99,7 +99,7 @@ export default function Page() {
 
     const payload = {
       user_id: user?.id,
-      mess_id: "a9b5dfb3-257e-4e3e-9472-cd169ddf708c",
+      mess_id: user?.allocated_mess?.id,
       meal_budget: mealBudget,
       total_meal: totalMeal,
       items: items,
