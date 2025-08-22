@@ -20,6 +20,8 @@ interface ItemMessHeaderProps {
   mealTimes: MealTime;
   setBudgetPerStudent: Dispatch<SetStateAction<number>>;
   setTotalStudents: Dispatch<SetStateAction<number>>;
+  totalBudget: number;
+  setTotalBudget: Dispatch<SetStateAction<number>>;
 }
 
 const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
@@ -32,9 +34,10 @@ const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
   setMealTimes,
   setBudgetPerStudent,
   setTotalStudents,
+  totalBudget,
+  setTotalBudget,
 }) => {
   const [totalPrice, setTotalPrice] = useState<number>(0);
-  const [totalBudget, setTotalBudget] = useState<number>(0);
 
   useEffect(() => {
     setTotalBudget(

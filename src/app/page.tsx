@@ -378,6 +378,8 @@ export default function Page() {
           totalStudents={totalMeal}
           setBudgetPerStudent={setBudgetPerMeal}
           setTotalStudents={setTotalMeal}
+          totalBudget={totalBudget}
+          setTotalBudget={setTotalBudget}
         />
 
         {/* Items Section */}
