@@ -1,6 +1,6 @@
 import { BUDGET_THRESHOLDS } from "@/constants";
-import { BudgetStatus, MessData, SelectedItems } from "@/types";
-import { Calculator, DollarSign, Users } from "lucide-react";
+import { BudgetStatus, MealTime, MessData, SelectedCategoryMap } from "@/types";
+import { Calculator, Coffee, DollarSign, Moon, Sun, Users } from "lucide-react";
 import React, {
   Dispatch,
   SetStateAction,
@@ -12,9 +12,12 @@ import { BudgetSummary } from "./BudgetSummary";
 
 interface ItemMessHeaderProps {
   messInfo: MessData;
-  selectedItems: SelectedItems;
+  selectedItems: SelectedCategoryMap;
+  auto: boolean;
   budgetPerStudent: number;
   totalStudents: number;
+  setMealTimes: Dispatch<SetStateAction<MealTime>>;
+  mealTimes: MealTime;
   setBudgetPerStudent: Dispatch<SetStateAction<number>>;
   setTotalStudents: Dispatch<SetStateAction<number>>;
 }
@@ -22,8 +25,11 @@ interface ItemMessHeaderProps {
 const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
   messInfo,
   selectedItems,
+  auto,
   budgetPerStudent,
   totalStudents,
+  mealTimes,
+  setMealTimes,
   setBudgetPerStudent,
   setTotalStudents,
 }) => {
@@ -60,22 +66,21 @@ const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
   const getSelectedItemCount = useMemo(() => {
     let count = 0;
     let total = 0;
-
-    Object.values(selectedItems).forEach((item) => {
-      const price = item.price ?? 0;
-      if (price > 0) {
-        count += 1;
-        const mealTime =
-          (item.bld?.breakfast ? 1 : 0) +
-          (item.bld?.lunch ? 1 : 0) +
-          (item.bld?.dinner ? 1 : 0);
-        const subTotal = price * mealTime;
-        total += subTotal;
-      }
+    Object.values(selectedItems).forEach((categories) => {
+      Object.values(categories).forEach((item) => {
+        if (auto) {
+          count += 1;
+          total = 0;
+        } else {
+          let subTotal = item.unit.price * item.quantity;
+          total += subTotal;
+          count += item.quantity > 0 ? item.quantity : 0;
+        }
+      });
     });
     setTotalPrice(total);
     return count;
-  }, [selectedItems]);
+  }, [selectedItems, auto]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
@@ -135,6 +140,45 @@ const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
               <h3 className="text-lg font-semibold text-gray-900">
                 Budget Configuration
               </h3>
+            </div>
+
+            <div className="w-full flex justify-between items-center gap-2">
+              <button
+                className={`w-full rounded-lg border shadow-sm p-2 flex justify-center items-center gap-1 ${
+                  mealTimes.breakfast
+                    ? "bg-blue-100 border-blue-300 text-blue-700"
+                    : "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+                }`}
+                onClick={() =>
+                  setMealTimes({ breakfast: true, lunch: false, dinner: false })
+                }
+              >
+                <Coffee /> <span>সকাল</span>
+              </button>
+              <button
+                className={`w-full rounded-lg border shadow-sm p-2 flex justify-center items-center gap-1 ${
+                  mealTimes.lunch
+                    ? "bg-blue-100 border-blue-300 text-blue-700"
+                    : "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+                }`}
+                onClick={() =>
+                  setMealTimes({ breakfast: false, lunch: true, dinner: false })
+                }
+              >
+                <Sun /> <span>দুপুর</span>
+              </button>
+              <button
+                className={`w-full rounded-lg border shadow-sm p-2 flex justify-center items-center gap-1 ${
+                  mealTimes.dinner
+                    ? "bg-blue-100 border-blue-300 text-blue-700"
+                    : "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+                }`}
+                onClick={() =>
+                  setMealTimes({ breakfast: false, lunch: false, dinner: true })
+                }
+              >
+                <Moon /> <span>রাত</span>
+              </button>
             </div>
 
             {/* Budget Inputs */}

@@ -96,7 +96,7 @@ const Modal: React.FC<ModalProps> = ({
       />
 
       {/* Modal container */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center m-0 sm:m-4 p-4 pointer-events-none">
         <div
           className={`
             relative w-full ${sizeClasses[size]}

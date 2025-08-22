@@ -1,218 +1,158 @@
 import React, { useState } from "react";
 import Modal from "./Modal";
-import api from "@/utils/api"; // make sure your API utility is correctly imported
-import axios from "axios";
-
-interface ErrorDetails {
-  details: string;
-}
-
-interface ErrorState {
-  [key: string]: ErrorDetails;
-}
+import api from "@/utils/api";
+import { Unit } from "@/types";
 
 interface UniteAddModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: (id: string) => void;
-}
-
-interface Touched {
-  [key: string]: boolean;
+  units: Unit[];
+  setUnits: React.Dispatch<React.SetStateAction<Unit[]>>;
+  selectedUnites: { [unit_id: string]: { unite: Unit; price: number } };
+  setSelectedUnites: React.Dispatch<
+    React.SetStateAction<{ [unit_id: string]: { unite: Unit; price: number } }>
+  >;
 }
 
 const UniteAddModal: React.FC<UniteAddModalProps> = ({
   open,
   onClose,
   onSuccess,
+  units,
+  selectedUnites,
+  setSelectedUnites,
 }) => {
-  const [errors, setErrors] = useState<ErrorState>({});
-  const [touched, setTouched] = useState<Touched>({});
-  const [label, setLabel] = useState<string>("");
-  const [emoji, setEmoji] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<{ formSubmit: boolean }>({
-    formSubmit: false,
-  });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setLabel(value);
-
-    if (errors.label) {
-      setErrors((prev) => {
-        const updated = { ...prev };
-        delete updated.label;
-        return updated;
-      });
-    }
-  };
-
-  const handleBlur = (field: string) => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-  };
-
-  const validateForm = () => {
-    const newErrors: ErrorState = {};
-    if (!label.trim()) {
-      newErrors.label = { details: "Label is required" };
-    }
-    if (!emoji.trim()) {
-      newErrors.emoji = { details: "Emoji is required" };
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const [label, setLabel] = useState("");
+  const [emoji, setEmoji] = useState("");
+  const [price, setPrice] = useState<number>(0);
+  const [selectedUnit, setSelectedUnit] = useState<string>("");
+  const [newUniteShow, setNewUniteShow] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setTouched({ label: true });
+    if (price > 0) {
+      if (newUniteShow && label.trim() && emoji.trim()) {
+        const payload = {
+          label: label.trim(),
+          icon: emoji.trim(),
+        };
 
-    if (!validateForm()) return;
+        try {
+          const res = await api.post("/product/add/unite", payload);
+          if (res.status === 201) {
+            const data: Unit = res.data;
+            const prev = { ...selectedUnites };
 
-    const payload = {
-      label: label.trim(),
-      icon: emoji.trim(),
-    };
-
-    setIsLoading((prev) => ({ ...prev, formSubmit: true }));
-
-    try {
-      const res = await api.post("/product/add/unite", payload); // replace endpoint if different
-      if (res.status === 201) {
-        onSuccess(res.data.id);
-        handleClose();
-      }
-    } catch (err: any) {
-      if (axios.isAxiosError(err)) {
-        setErrors({
-          label: { details: err.response?.data.detail },
-        });
+            prev[data.id] = {
+              unite: data,
+              price: price,
+            };
+            setSelectedUnites(prev);
+            handleClose();
+          }
+        } catch (err: any) {
+          console.error(err.response?.data?.message || "Error adding unit");
+        }
       } else {
-        setErrors({
-          label: { details: "Unexpected error" },
-        });
+        if (selectedUnit) {
+          const prev = { ...selectedUnites };
+
+          prev[selectedUnit] = {
+            unite: units.find((u) => u.id === selectedUnit) as Unit,
+            price: price,
+          };
+          setSelectedUnites(prev);
+          handleClose();
+        }
       }
-    } finally {
-      setIsLoading((prev) => ({ ...prev, formSubmit: false }));
     }
   };
 
   const handleClose = () => {
     setLabel("");
     setEmoji("");
-    setErrors({});
-    setTouched({});
+    setPrice(0);
     onClose();
   };
 
   return (
-    <Modal open={open} onClose={handleClose} size="sm" title="Add New Unit">
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-6">
-          {/* Label Input */}
-          <div className="space-y-2">
-            <label
-              htmlFor="label"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Unit Label <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                id="label"
-                name="label"
-                value={label}
-                onChange={handleInputChange}
-                onBlur={() => handleBlur("label")}
-                placeholder="Enter unit label (e.g., Kilogram)"
-                className={`block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  errors.label && touched.label
-                    ? "border-red-300 bg-red-50 focus:border-red-500"
-                    : "border-gray-200 focus:border-blue-500 bg-white"
-                }`}
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                <span className="text-gray-400">⚖️</span>
-              </div>
-            </div>
+    <Modal
+      open={open}
+      onClose={handleClose}
+      size="sm"
+      title="Add New Unit"
+      header
+    >
+      <form onSubmit={handleSubmit} className="w-full space-y-4">
+        {newUniteShow ? (
+          <div className="flex flex-col gap-3">
+            <input
+              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+              type="text"
+              placeholder="Unit Name (e.g. kg, liter)"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              required
+            />
+            <input
+              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+              type="text"
+              placeholder="Unit Emoji (e.g. ⚖️)"
+              value={emoji}
+              onChange={(e) => setEmoji(e.target.value)}
+            />
+          </div>
+        ) : (
+          <select
+            className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+            value={selectedUnit}
+            onChange={(e) => setSelectedUnit(e.target.value)}
+          >
+            <option value="" disabled>
+              Select an existing unit
+            </option>
+            {units.map((unit) => (
+              <option key={unit.id} value={unit.id}>
+                {unit.icon} {unit.label}
+              </option>
+            ))}
+          </select>
+        )}
 
-            {errors.label && touched.label && (
-              <p className="text-red-600 text-sm flex items-center gap-1">
-                <span className="text-red-500">⚠️</span>
-                {errors.label.details}
-              </p>
-            )}
-          </div>
-          {/* Emoji Input */}
-          <div className="space-y-2">
-            <label
-              htmlFor="emoji"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Emoji <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                id="emoji"
-                name="emoji"
-                value={emoji}
-                onChange={(e) => setEmoji(e.target.value)}
-                onBlur={() => handleBlur("emoji")}
-                placeholder="Enter an emoji (e.g., ⚖️)"
-                maxLength={2}
-                className={`block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  errors.emoji && touched.emoji
-                    ? "border-red-300 bg-red-50 focus:border-red-500"
-                    : "border-gray-200 focus:border-blue-500 bg-white"
-                }`}
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                <span className="text-2xl">{emoji || "🔤"}</span>
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-1 pl-1">
-              Only a single emoji is recommended 💡
-            </p>
-            {errors.emoji && touched.emoji && (
-              <p className="text-red-600 text-sm flex items-center gap-1">
-                <span className="text-red-500">⚠️</span>
-                {errors.emoji.details}
-              </p>
-            )}
-          </div>
+        <button
+          type="button"
+          className="text-sm text-blue-600 hover:underline"
+          onClick={() => setNewUniteShow(!newUniteShow)}
+        >
+          {newUniteShow ? "Use Existing Unit" : "Add New Unit"}
+        </button>
 
-          {/* Buttons */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={isLoading.formSubmit}
-              className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading.formSubmit}
-              className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
-            >
-              {isLoading.formSubmit ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                <>
-                  <span>✨</span>
-                  Add Unit
-                </>
-              )}
-            </button>
-          </div>
+        <input
+          className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+          type="number"
+          placeholder="Price"
+          value={price > 0 ? price : ""}
+          onChange={(e) => setPrice(Number(e.target.value))}
+          required
+        />
+
+        <div className="flex justify-end gap-3 pt-2">
+          <button
+            type="button"
+            className="px-4 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
+            onClick={handleClose}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition"
+            onClick={handleSubmit}
+          >
+            Add Unit
+          </button>
         </div>
       </form>
     </Modal>

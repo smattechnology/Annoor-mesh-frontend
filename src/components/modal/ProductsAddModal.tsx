@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import Modal from "./Modal";
 import api from "@/utils/api";
 import UniteAddModal from "./UniteAddModal";
 import CategoryAddModal from "./CategoryAddModal";
 import ProductSearchInput from "../autocomplete/ProductSearchInput";
-import { Product } from "@/types";
+import { Product, Unit } from "@/types";
+import { Trash } from "lucide-react";
 
 interface ProductsAddModalProps {
   open: boolean;
@@ -50,8 +51,12 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
 
+  const [selectedUnites, setSelectedUnites] = useState<{
+    [unit_id: string]: { unite: Unit; price: number };
+  }>({});
+
   // Data lists
-  const [units, setUnits] = useState<SelectOption[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
   const [categories, setCategories] = useState<SelectOption[]>([]);
 
   const [searchFound, setSearchFound] = useState<boolean>(false);
@@ -81,6 +86,14 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
       setDescription(
         selectedProduct.description ? selectedProduct.description : ""
       );
+      selectedProduct.units.forEach((u) => {
+        const prev = { ...selectedUnites };
+        prev[u.id] = {
+          unite: u,
+          price: u.price,
+        };
+        setSelectedUnites(prev);
+      });
     }
   }, [selectedProduct]);
 
@@ -205,6 +218,7 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
     setCategory("");
     setErrors({});
     setTouched({});
+    setSelectedUnites({});
     onClose();
   };
 
@@ -214,6 +228,14 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
     setUnit(p.unit.id);
     setCategory(p.category.id);
     setDescription(p.description ? p.description : "");
+    p.units.forEach((u) => {
+      const prev = { ...selectedUnites };
+      prev[u.id] = {
+        unite: u,
+        price: u.price,
+      };
+      setSelectedUnites(prev);
+    });
   };
 
   return (
@@ -272,95 +294,6 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
             )}
           </div>
 
-          {/* Price and Unit Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Price */}
-            <div className="space-y-2">
-              <label
-                htmlFor="price"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Price (৳) <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  id="price"
-                  name="price"
-                  value={price}
-                  onChange={(e) => handleInputChange("price", e.target.value)}
-                  onBlur={() => handleBlur("price")}
-                  onWheel={(e) => e.currentTarget.blur()}
-                  placeholder="0.00"
-                  min="0"
-                  step="0.01"
-                  className={`block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    errors.price && touched.price
-                      ? "border-red-300 bg-red-50 focus:border-red-500"
-                      : "border-gray-200 focus:border-blue-500 bg-white"
-                  }`}
-                />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <span className="text-gray-400">৳</span>
-                </div>
-              </div>
-              {errors.price && touched.price && (
-                <p className="text-red-600 text-sm flex items-center gap-1">
-                  <span className="text-red-500">⚠️</span>
-                  {errors.price}
-                </p>
-              )}
-            </div>
-
-            {/* Unit */}
-            <div className="space-y-2">
-              <label
-                htmlFor="unit"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Unit <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  id="unit"
-                  name="unit"
-                  value={unit}
-                  onChange={(e) => handleInputChange("unit", e.target.value)}
-                  onBlur={() => handleBlur("unit")}
-                  className={`block w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    errors.unit && touched.unit
-                      ? "border-red-300 bg-red-50 focus:border-red-500"
-                      : "border-gray-200 focus:border-blue-500 bg-white"
-                  }`}
-                >
-                  {isLoading?.fetchUnites ? (
-                    <option value="">Loading...</option>
-                  ) : (
-                    <option value="">Select a unit</option>
-                  )}
-                  {units?.map((unitOption) => (
-                    <option key={unitOption.id} value={unitOption.id}>
-                      {unitOption.icon} {unitOption.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowUniteAddModal(true)}
-                className="mt-2 text-sm text-blue-600 hover:underline flex items-center gap-1"
-              >
-                <span>➕</span> Add new unit
-              </button>
-              {errors.unit && touched.unit && (
-                <p className="text-red-600 text-sm flex items-center gap-1">
-                  <span className="text-red-500">⚠️</span>
-                  {errors.unit}
-                </p>
-              )}
-            </div>
-          </div>
-
           {/* Category */}
           <div className="space-y-2">
             <label
@@ -402,6 +335,38 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
               <span>➕</span> Add new Category
             </button>
           </div>
+
+          {/* Price and Unit Row */}
+          <div className="w-full rounded-lg border border-gray-200 p-4">
+            {Object.values(selectedUnites).map((unit) => (
+              <div
+                className="w-full flex justify-between items-center gap-2"
+                key={unit.unite.id}
+              >
+                <span>{unit.price}</span>
+                <span>
+                  {unit.unite.icon} {unit.unite.label}
+                </span>
+                <button
+                  className="p-2 shadow rounded-lg border border-gray-300 hover:bg-red-100 hover:text-red-700"
+                  onClick={() => {
+                    const prev = { ...selectedUnites };
+                    delete prev[unit.unite.id];
+                    setSelectedUnites(prev);
+                  }}
+                >
+                  <Trash className="h-5 w-5" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowUniteAddModal(true)}
+            className="mt-2 text-sm text-blue-600 hover:underline flex items-center gap-1"
+          >
+            <span>➕</span> Add new Unit
+          </button>
 
           {/* Description */}
           <div className="space-y-2">
@@ -461,6 +426,10 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
           fetchUnits();
           setUnit(id);
         }}
+        units={units}
+        setUnits={setUnits}
+        selectedUnites={selectedUnites}
+        setSelectedUnites={setSelectedUnites}
       />
       <CategoryAddModal
         open={showCategoryAddModal}

@@ -1,23 +1,48 @@
 import React from "react";
-import { MealTime, Product, SelectedItems } from "@/types";
+import { MealTime, Product, ProductMap, Unit } from "@/types";
+import { on } from "events";
+import { Shuffle, Trash } from "lucide-react";
 
 interface ItemCardProps {
+  /** The food item to display */
   product: Product;
-  selectedItems: SelectedItems;
-  toggleMeal: (productId: string, meal: keyof MealTime) => void;
-  onPriceChange: (productId: string, price: number) => void;
+  selectedItem: {
+    bld?: MealTime;
+    unit?: Unit;
+    quantity?: number;
+  };
+  auto: boolean;
+  onToggle: (bld: MealTime) => void;
+  omQuantityChange: (quantity: number) => void;
+  // onAutoToggle: () => void;
+  isAuto: boolean;
+  onDelete: () => void;
 }
 
 export const ItemCard: React.FC<ItemCardProps> = React.memo(
-  ({ product, selectedItems, toggleMeal, onPriceChange }) => {
-    const item = selectedItems[product.id];
+  ({
+    product,
+    selectedItem,
+    onToggle,
+    auto,
+    omQuantityChange,
+    // onAutoToggle,
+    isAuto,
+    onDelete,
+  }) => {
     const selectSuccess =
-      (item?.bld?.breakfast || item?.bld?.lunch || item?.bld?.dinner) &&
-      (item?.price ?? 0) > 0;
+      auto ||
+      ((selectedItem.bld?.breakfast ||
+        selectedItem.bld?.lunch ||
+        selectedItem.bld?.dinner) &&
+        (selectedItem.quantity ?? 0) > 0);
 
     const selectWarning =
-      (item?.bld?.breakfast || item?.bld?.lunch || item?.bld?.dinner) &&
-      (item?.price ?? 0) <= 0;
+      !auto &&
+      (selectedItem.bld?.breakfast ||
+        selectedItem.bld?.lunch ||
+        selectedItem.bld?.dinner) &&
+      (selectedItem.quantity ?? 0) <= 0;
 
     const statusClassNames = selectWarning
       ? "border-yellow-500 bg-yellow-50 ring-2 ring-yellow-200"
@@ -25,17 +50,11 @@ export const ItemCard: React.FC<ItemCardProps> = React.memo(
       ? "border-green-500 bg-green-50 ring-2 ring-green-200"
       : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50";
 
-    const getMealButtonClass = (meal: keyof MealTime) =>
-      `w-full rounded-lg border shadow-sm p-2 flex justify-center items-center gap-1 ${
-        item?.bld?.[meal] ? "bg-blue-100 border-blue-400" : ""
-      }`;
-
     return (
       <div
         key={product.id}
-        className={`border rounded-lg p-4 shadow transition-all duration-200 hover:shadow-md cursor-pointer
-          ${statusClassNames}
-        `}
+        className={`border rounded-lg p-4 shadow transition-all duration-200
+        ${statusClassNames}`}
       >
         {/* Item Details */}
         <div className="flex items-center justify-between gap-3 mb-3">
@@ -51,61 +70,125 @@ export const ItemCard: React.FC<ItemCardProps> = React.memo(
               className="text-xs text-gray-600 mt-1"
             >
               <span className="font-medium">
-                ৳{product.price.toLocaleString()}
+                ৳{product.unit.price.toLocaleString("en-BD")}
               </span>
-              <span className="text-gray-500"> / {product.unit.label}</span>
+              <span className="text-gray-500"> / {product.unit?.label}</span>
             </p>
           </div>
 
-          <div>
-            <input
-              type="number"
-              value={item?.price ?? ""}
-              onChange={(e) => {
-                const raw = e.target.value;
-                const value = parseInt(raw, 10);
-                onPriceChange(product.id, !isNaN(value) ? value : 0);
-              }}
-              onWheel={(e) => e.currentTarget.blur()}
-              onInput={(e) => {
-                const input = e.target as HTMLInputElement;
-                if (input.value.length > 3) {
-                  input.value = input.value.slice(0, 3);
-                }
-                input.value = input.value.replace(/^0+(?=\d)/, "");
-              }}
-              className="w-15 px-2 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center no-spinner"
-              placeholder="000"
-              disabled={
-                !item?.bld?.breakfast && !item?.bld?.lunch && !item?.bld?.dinner
-              }
-            />
+          <div className="flex justify-between items-center gap-2">
+            <button
+              className="p-2 shadow rounded-lg border border-gray-300 hover:bg-red-100 hover:text-red-700"
+              onClick={() => onDelete()}
+            >
+              <Trash className="h-5 w-5" />
+            </button>
           </div>
         </div>
 
+        {!isAuto && (
+          <div className="w-full flex items-center gap-3">
+            <div className="flex items-center gap-2 w-full">
+              <label className="w-full text-sm font-medium text-gray-700">
+                পরিমাণ:
+              </label>
+
+              <input
+                // disabled={
+                //   !selectedItem.bld?.breakfast &&
+                //   !selectedItem.bld?.lunch &&
+                //   !selectedItem.bld?.dinner
+                // }
+                type="number"
+                maxLength={3}
+                onInput={(e) => {
+                  const input = e.target as HTMLInputElement;
+                  if (input.value.length > 3) {
+                    input.value = input.value.slice(0, 3);
+                  }
+                  input.value = input.value.replace(/^0+(?=\d)/, "");
+                }}
+                value={selectedItem.quantity ?? ""}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const value = parseInt(raw, 10);
+                  omQuantityChange(value || 0);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm 
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                   text-center no-spinner text-sm"
+                placeholder="000"
+              />
+            </div>
+
+            <select
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm 
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                   text-sm"
+              defaultValue={product.unit.id}
+            >
+              {product.units.map((unit) => (
+                <option key={unit.id} value={unit.id}>
+                  {unit.icon} {unit.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Meal Toggle Buttons */}
-        <div className="mt-3 flex items-center gap-2">
-          <button
-            className={getMealButtonClass("breakfast")}
-            onClick={() => toggleMeal(product.id, "breakfast")}
+        {/* <div className="mt-3 flex items-center gap-2">
+          <div
+            className={`w-full rounded-lg border shadow-sm p-2 flex justify-center items-center gap-1 ${
+              selectedItem.bld?.breakfast
+                ? "bg-blue-100 border-blue-300 text-blue-700"
+                : "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() =>
+              onToggle({
+                breakfast: !selectedItem.bld?.breakfast,
+                lunch: selectedItem.bld?.lunch,
+                dinner: selectedItem.bld?.dinner,
+              })
+            }
           >
             <span>সকাল</span>
-          </button>
+          </div>
 
-          <button
-            className={getMealButtonClass("lunch")}
-            onClick={() => toggleMeal(product.id, "lunch")}
+          <div
+            className={`w-full rounded-lg border shadow-sm p-2 flex justify-center selectedItems-center gap-1 ${
+              selectedItem.bld?.lunch
+                ? "bg-blue-100 border-blue-300 text-blue-700"
+                : "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() =>
+              onToggle({
+                breakfast: selectedItem.bld?.breakfast,
+                lunch: !selectedItem.bld?.lunch,
+                dinner: selectedItem.bld?.dinner,
+              })
+            }
           >
             <span>দুপুর</span>
-          </button>
+          </div>
 
-          <button
-            className={getMealButtonClass("dinner")}
-            onClick={() => toggleMeal(product.id, "dinner")}
+          <div
+            className={`w-full rounded-lg border shadow-sm p-2 flex justify-center items-center gap-1 ${
+              selectedItem.bld?.dinner
+                ? "bg-blue-100 border-blue-300 text-blue-700"
+                : "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() =>
+              onToggle({
+                breakfast: selectedItem.bld?.breakfast,
+                lunch: selectedItem.bld?.lunch,
+                dinner: !selectedItem.bld?.dinner,
+              })
+            }
           >
             <span>রাত</span>
-          </button>
-        </div>
+          </div>
+        </div> */}
       </div>
     );
   }

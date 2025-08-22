@@ -64,6 +64,7 @@ const ProductsContent = () => {
       });
 
       const response = await api.get(`/product/get/all?${params.toString()}`);
+      console.log(response);
 
       if (response.status !== 200)
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -294,7 +295,7 @@ const ProductsContent = () => {
                         {product.category.label}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.price} / {product.unit.label}
+                        {product.unit?.price} / {product.unit?.label}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(product.created_at).toLocaleDateString()}

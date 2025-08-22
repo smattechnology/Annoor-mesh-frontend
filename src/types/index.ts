@@ -12,50 +12,6 @@ export interface UserData {
   avatar?: string;
   allocated_mess?: MessData;
 }
-
-export interface MealTime {
-  breakfast?: boolean;
-  lunch?: boolean;
-  dinner?: boolean;
-  editable?: boolean;
-}
-export type Product = {
-  id: string;
-  name: string;
-  price: string;
-  description: string | null;
-  category: {
-    id: string;
-    label: string;
-    icon: string;
-    created_at: string;
-    updated_at: string;
-  };
-  unit: {
-    id: string;
-    label: string;
-    icon: string;
-    created_at: string;
-    updated_at: string;
-  };
-  bld?: MealTime;
-  pp?: number; // price per portion, initialized to 0
-  created_at: string;
-  updated_at: string;
-};
-export interface Category {
-  id: string;
-  label: string;
-  icon: string;
-  products: Product[];
-}
-export interface SelectedItems {
-  [productId: string]: {
-    bld?: MealTime;
-    price?: number;
-  };
-}
-
 export type BudgetStatus =
   | "no-budget"
   | "over-budget"
@@ -95,3 +51,73 @@ export interface MessData {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface MealTime {
+  breakfast?: boolean;
+  lunch?: boolean;
+  dinner?: boolean;
+  editable?: boolean;
+}
+export interface Unit {
+  id: string;
+  label: string;
+  icon: string;
+  price: number;
+  created_at: string;
+  updated_at: string;
+}
+export interface ProductCategory {
+  id: string;
+  label: string;
+  icon: string;
+  created_at: string;
+  updated_at: string;
+}
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+  description: string | null;
+  category: ProductCategory;
+  unit: Unit;
+  units: Unit[];
+  created_at: string;
+  updated_at: string;
+}
+export interface Category {
+  id: string;
+  label: string;
+  icon: string;
+  rand_select: "STATIC" | "DYNAMIC";
+  min: number;
+  max: number;
+  products: ProductMap;
+}
+export interface CategoryPayload {
+  id: string;
+  label: string;
+  icon: string;
+  rand_select: "STATIC" | "DYNAMIC";
+  min: number;
+  max: number;
+  products: Product[];
+  created_at: string;
+  updated_at: string;
+}
+export type CategoryMap = { [categoryId: string]: Category };
+export type ProductMap = Record<string, Product>;
+
+export type SelectedItemMap = Record<
+  string,
+  {
+    bld: MealTime;
+    unit: Unit;
+    quantity: number;
+  }
+>;
+export type SelectedCategoryMap = Record<string, SelectedItemMap>;
+
+export type SelectedItemError = Record<
+  string,
+  { type: "error" | "warning"; message: string }
+>;
