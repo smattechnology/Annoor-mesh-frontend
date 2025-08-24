@@ -77,7 +77,7 @@ const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
         } else {
           let subTotal = item.unit.price * item.quantity;
           total += subTotal;
-          count += item.quantity > 0 ? item.quantity : 0;
+          count += item.quantity > 0 ? 1 : 0;
         }
       });
     });
