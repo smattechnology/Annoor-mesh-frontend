@@ -76,6 +76,14 @@ const CategorySelectModal: React.FC<CategorySelectModalProps> = ({
           );
         })}
       </div>
+      <div className="sticky bottom-0 bg-white border-t p-4 flex justify-end">
+        <button
+          onClick={() => setCatSelectIsOpen(false)}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow transition-all duration-200"
+        >
+          Submit
+        </button>
+      </div>
     </Modal>
   );
 };

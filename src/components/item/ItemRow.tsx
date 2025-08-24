@@ -46,42 +46,42 @@ const ItemRow: React.FC<ItemRowProps> = ({
     return (
       <div
         key={category.id}
-        className="p-5 rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow"
+        className="p-4 sm:p-5 rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow"
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold text-gray-900">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">
               {category.label}
             </h2>
-            <span className=" ">{category.icon}</span>
+            <span>{category.icon}</span>
           </div>
 
           {/* Actions */}
-          <div className="flex justify-between items-center gap-2">
+          <div className="flex flex-wrap justify-start sm:justify-end items-center gap-2">
             <span
-              className="p-2 shadow cursor-pointer rounded-lg border border-gray-300 hover:bg-blue-100 hover:text-blue-700"
+              className="p-2 sm:p-2.5 shadow cursor-pointer rounded-lg border border-gray-300 hover:bg-blue-100 hover:text-blue-700 transition-colors"
               onClick={() => setIsOpen(true)}
             >
-              <Edit className="h-5 w-5" />
+              <Edit className="h-4 w-4 sm:h-5 sm:w-5" />
             </span>
             <span
-              className="p-2 shadow cursor-pointer rounded-lg border border-gray-300 hover:bg-blue-100 hover:text-blue-700"
+              className="p-2 sm:p-2.5 shadow cursor-pointer rounded-lg border border-gray-300 hover:bg-blue-100 hover:text-blue-700 transition-colors"
               onClick={onRefresh}
             >
-              <Repeat className="h-5 w-5" />
+              <Repeat className="h-4 w-4 sm:h-5 sm:w-5" />
             </span>
             <button
-              className="p-2 shadow rounded-lg border border-gray-300 hover:bg-red-100 hover:text-red-700"
+              className="p-2 sm:p-2.5 shadow rounded-lg border border-gray-300 hover:bg-red-100 hover:text-red-700 transition-colors"
               onClick={onDelete}
             >
-              <Trash className="h-5 w-5" />
+              <Trash className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </div>
         </div>
 
-        {/* Items */}
-        <div className="w-full grid grid-cols-3 lg:grid-cols-3 gap-2">
+        {/* Items Grid */}
+        <div className="w-full grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           {selectedItems[category.id] &&
             Object.keys(selectedItems[category.id]).map((product_id) => (
               <ItemCard
@@ -100,6 +100,8 @@ const ItemRow: React.FC<ItemRowProps> = ({
               />
             ))}
         </div>
+
+        {/* Modal */}
         <EditItemsModal
           isShowing={isOpen}
           setIsShowing={setIsOpen}

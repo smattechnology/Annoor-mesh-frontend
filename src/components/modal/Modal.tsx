@@ -26,23 +26,21 @@ const Modal: React.FC<ModalProps> = ({
   const [isVisible, setIsVisible] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
 
-  // Memoize the close handler to prevent unnecessary re-renders
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        handleClose();
-      }
+      if (e.key === "Escape") handleClose();
     };
 
     if (open) {
       setShouldRender(true);
-      // Use requestAnimationFrame for smoother animation timing
       const timeoutId = setTimeout(() => setIsVisible(true), 10);
       document.addEventListener("keydown", handleEsc);
+
+      // Apply scroll lock
       document.body.style.overflow = "hidden";
 
       return () => {
@@ -51,24 +49,22 @@ const Modal: React.FC<ModalProps> = ({
       };
     } else if (!open && shouldRender) {
       setIsVisible(false);
-      // Wait for exit animation to complete before unmounting
       const timeoutId = setTimeout(() => setShouldRender(false), 300);
 
-      return () => {
-        clearTimeout(timeoutId);
-        document.removeEventListener("keydown", handleEsc);
-        document.body.style.overflow = "unset";
-      };
+      return () => clearTimeout(timeoutId);
     }
-
-    // Cleanup function for when component unmounts
-    return () => {
-      document.removeEventListener("keydown", handleEsc);
-      document.body.style.overflow = "unset";
-    };
   }, [open, shouldRender, handleClose]);
 
-  // Size variants
+  // Cleanup overflow when component unmounts OR when modal closes
+  useEffect(() => {
+    if (!open) {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   const sizeClasses = {
     sm: "max-w-sm",
     md: "max-w-md",
@@ -76,19 +72,17 @@ const Modal: React.FC<ModalProps> = ({
     xl: "max-w-2xl",
     xxl: "max-w-4xl",
     xxxl: "max-w-6xl",
-    full: "max-w-7xl mx-4",
+    full: "max-w-7xl w-full mx-4",
   };
 
   if (!shouldRender) return null;
 
   return (
     <>
-      {/* Backdrop with blur effect */}
+      {/* Backdrop */}
       <div
         className={`
-          fixed inset-0 z-50 
-          bg-black/60 backdrop-blur-sm
-          transition-all duration-300 ease-out
+          fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300
           ${isVisible ? "opacity-100" : "opacity-0"}
         `}
         onClick={closeOnBackdrop ? handleClose : undefined}
@@ -96,12 +90,12 @@ const Modal: React.FC<ModalProps> = ({
       />
 
       {/* Modal container */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center m-0 sm:m-4 p-4 pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
         <div
           className={`
             relative w-full ${sizeClasses[size]}
             bg-white rounded-2xl shadow-2xl
-            transform transition-all duration-300 ease-out pointer-events-auto
+            transform transition-all duration-300 ease-out
             ${
               isVisible
                 ? "scale-100 opacity-100 translate-y-0"
@@ -112,8 +106,6 @@ const Modal: React.FC<ModalProps> = ({
           `}
           style={{
             background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-            boxShadow:
-              "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.8)",
           }}
           onClick={(e) => e.stopPropagation()}
           role="dialog"
@@ -122,11 +114,11 @@ const Modal: React.FC<ModalProps> = ({
         >
           {/* Header */}
           {header && (title || showCloseButton) && (
-            <div className="flex items-center justify-between p-6 pb-0">
+            <div className="flex items-center justify-between p-4 sm:p-6 pb-0">
               {title && (
                 <h2
                   id="modal-title"
-                  className="text-xl font-semibold text-gray-900 tracking-tight"
+                  className="text-lg sm:text-xl font-semibold text-gray-900"
                 >
                   {title}
                 </h2>
@@ -134,12 +126,7 @@ const Modal: React.FC<ModalProps> = ({
               {showCloseButton && (
                 <button
                   onClick={handleClose}
-                  className={`
-                    p-2 rounded-full transition-all duration-200
-                    text-gray-400 hover:text-gray-600 hover:bg-gray-100
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                    ${!title ? "absolute top-4 right-4 z-10" : ""}
-                  `}
+                  className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                   aria-label="Close modal"
                   type="button"
                 >
@@ -162,29 +149,14 @@ const Modal: React.FC<ModalProps> = ({
             </div>
           )}
 
-          {/* Content */}
+          {/* Scrollable Content */}
           <div
-            className={`px-6 ${
+            className={`px-4 sm:px-6 ${
               title || showCloseButton ? "pt-4" : "pt-6"
-            } pb-6`}
+            } pb-6 max-h-[80vh] overflow-y-auto`}
           >
             {children}
           </div>
-
-          {/* Subtle border accent */}
-          <div
-            className="absolute inset-0 rounded-2xl pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%)",
-              mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-              maskComposite: "xor",
-              WebkitMask:
-                "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-              WebkitMaskComposite: "xor",
-              padding: "1px",
-            }}
-          />
         </div>
       </div>
     </>
