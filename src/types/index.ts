@@ -121,3 +121,30 @@ export type SelectedItemError = Record<
   string,
   { type: "error" | "warning"; message: string }
 >;
+
+export interface OrderItem {
+  id: string; // item id
+  product: Product;
+  unit: Unit;
+  quantity: number;
+  auto: boolean;
+  for_breakfast: boolean;
+  for_lunch: boolean;
+  for_dinner: boolean;
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+}
+
+export type OrderStatus = "PENDING" | "PROCESSING" | "DELIVERED" | "FAILED";
+
+export interface OrderData {
+  id: string;
+  user: UserData;
+  mess: MessData;
+  meal_budget: number;
+  total_meal: number;
+  status: OrderStatus;
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+  items: OrderItem[];
+}

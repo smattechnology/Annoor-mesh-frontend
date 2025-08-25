@@ -90,9 +90,10 @@ const Modal: React.FC<ModalProps> = ({
       />
 
       {/* Modal container */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto overflow-hidden">
         <div
           className={`
+            overflow-hidden
             relative w-full ${sizeClasses[size]}
             bg-white rounded-2xl shadow-2xl
             transform transition-all duration-300 ease-out
