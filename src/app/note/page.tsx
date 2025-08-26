@@ -1,4 +1,6 @@
 "use client";
+import api from "@/utils/api";
+import { log } from "console";
 import { Coffee, Sun, Moon } from "lucide-react";
 import React, { JSX, useMemo, useState } from "react";
 
@@ -116,15 +118,27 @@ const NotePage = () => {
     return { breakfast, lunch, dinner, grandTotal };
   }, [mealData]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const activeMeals = Object.entries(mealData)
       .filter(([_, data]) => data.isActive)
       .reduce(
-        (acc, [key, data]) => ({ ...acc, [key]: data }),
+        (acc, [key, data]) => ({
+          ...acc,
+          [key]: {
+            budget: data.budget,
+            students: data.students,
+            note: data.note,
+          },
+        }),
         {} as Partial<MealData>
       );
 
-    console.log("Submitting Meal Data:", activeMeals);
+    const req = await api.post("/order/add/note_order", activeMeals);
+    if (req.status === 201) {
+      alert("Order placed successfully!");
+      setMealData(initialMealData);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   return (

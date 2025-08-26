@@ -1,6 +1,7 @@
 "use client";
 import DashboardContent from "@/components/section/admin/DashboardContent";
 import MessContent from "@/components/section/admin/Mess";
+import NoteOrder from "@/components/section/admin/NoteOrder";
 import OrderContent from "@/components/section/admin/OrderContent";
 import ProductsContent from "@/components/section/admin/ProductsContent";
 import UsersContent from "@/components/section/admin/UsersContent";
@@ -18,7 +19,7 @@ import React, { useState, useEffect } from "react";
 
 export default function AdminPage() {
   const [selectedTab, setSelectedTab] = useState<
-    "dashboard" | "users" | "products" | "mess" | "order"
+    "dashboard" | "users" | "products" | "mess" | "order" | "note-order"
   >("dashboard");
   const { user, isLoading, logout } = useAuth();
   const router = useRouter();
@@ -52,6 +53,8 @@ export default function AdminPage() {
         return <MessContent />;
       case "order":
         return <OrderContent />;
+      case "note-order":
+        return <NoteOrder />;
       default:
         return <DashboardContent />;
     }
@@ -87,6 +90,12 @@ export default function AdminPage() {
       label: "Orders",
       isActive: selectedTab === "order",
       onClick: () => setSelectedTab("order"),
+    },
+    {
+      icon: <Package size={18} />,
+      label: "Note Orders",
+      isActive: selectedTab === "note-order",
+      onClick: () => setSelectedTab("note-order"),
     },
   ];
 
