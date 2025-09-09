@@ -429,6 +429,7 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
             </button>
             <button
               type="submit"
+              onSubmit={handleSubmit}
               disabled={isLoading?.formSubmit}
               className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
             >
