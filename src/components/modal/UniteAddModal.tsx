@@ -9,9 +9,13 @@ interface UniteAddModalProps {
   onSuccess: (id: string) => void;
   units: Unit[];
   setUnits: React.Dispatch<React.SetStateAction<Unit[]>>;
-  selectedUnites: { [unit_id: string]: { unite: Unit; price: number } };
+  selectedUnites: {
+    [unit_id: string]: { unite: Unit; price: number; is_generic?: boolean };
+  };
   setSelectedUnites: React.Dispatch<
-    React.SetStateAction<{ [unit_id: string]: { unite: Unit; price: number } }>
+    React.SetStateAction<{
+      [unit_id: string]: { unite: Unit; price: number; is_generic?: boolean };
+    }>
   >;
 }
 
@@ -28,6 +32,7 @@ const UniteAddModal: React.FC<UniteAddModalProps> = ({
   const [price, setPrice] = useState<number>(0);
   const [selectedUnit, setSelectedUnit] = useState<string>("");
   const [newUniteShow, setNewUniteShow] = useState(false);
+  const [is_generic, set_is_generic] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +53,9 @@ const UniteAddModal: React.FC<UniteAddModalProps> = ({
             prev[data.id] = {
               unite: data,
               price: price,
+              is_generic: Object.keys(prev).length === 0, // ✅ first one true
             };
+
             setSelectedUnites(prev);
             handleClose();
           }
@@ -62,7 +69,9 @@ const UniteAddModal: React.FC<UniteAddModalProps> = ({
           prev[selectedUnit] = {
             unite: units.find((u) => u.id === selectedUnit) as Unit,
             price: price,
+            is_generic: Object.keys(prev).length === 0, // ✅ same for select
           };
+
           setSelectedUnites(prev);
           handleClose();
         }

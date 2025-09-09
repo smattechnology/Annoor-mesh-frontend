@@ -46,13 +46,12 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
     useState<boolean>(false);
   // Form states
   const [name, setName] = useState("");
-  const [price, setPrice] = useState<number | string>("");
   const [unit, setUnit] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
 
   const [selectedUnites, setSelectedUnites] = useState<{
-    [unit_id: string]: { unite: Unit; price: number };
+    [unit_id: string]: { unite: Unit; price: number; is_generic?: boolean };
   }>({});
 
   // Data lists
@@ -80,7 +79,6 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
   useEffect(() => {
     if (selectedProduct) {
       setName(selectedProduct.name);
-      setPrice(selectedProduct.price);
       setUnit(selectedProduct.unit.id);
       setCategory(selectedProduct.category.id);
       setDescription(
@@ -130,12 +128,19 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
       newErrors.name = "Product name must be at least 2 characters";
     }
 
-    if (!price || Number(price) <= 0) {
-      newErrors.price = "Price must be greater than 0";
+    if (!category) {
+      newErrors.category = "Category is required";
     }
 
-    if (!unit) {
-      newErrors.unit = "Unit is required";
+    if (Object.keys(selectedUnites).length === 0) {
+      newErrors.unit = "At least one unit is required";
+    } else {
+      const hasGeneric = Object.values(selectedUnites).some(
+        (u) => u.is_generic
+      );
+      if (!hasGeneric) {
+        newErrors.unit = "One unit must be marked as generic";
+      }
     }
 
     setErrors(newErrors);
@@ -149,9 +154,6 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
     switch (field) {
       case "name":
         setName(value as string);
-        break;
-      case "price":
-        setPrice(value);
         break;
       case "unit":
         setUnit(value as string);
@@ -189,11 +191,16 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
 
     const payload = {
       name: name.trim(),
-      price: parseInt(price.toString()),
-      unite_id: unit,
       category_id: category,
-      description: description?.trim() || undefined,
+      description: description?.trim() || "",
+      units: Object.values(selectedUnites).map((u) => ({
+        unit_id: u.unite.id,
+        price: Number(u.price),
+        is_generic: u.is_generic ?? false,
+      })),
     };
+
+    console.log("Submitting product payload:", payload);
 
     setIsLoading((prev) => ({ ...prev, formSubmit: true }));
 
@@ -212,7 +219,6 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
   const handleClose = () => {
     // Reset all form states
     setName("");
-    setPrice("");
     setUnit("");
     setDescription("");
     setCategory("");
@@ -224,7 +230,6 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
 
   const handleAutocompleteSelect = (p: Product) => {
     setName(p.name);
-    setPrice(p.price);
     setUnit(p.unit.id);
     setCategory(p.category.id);
     setDescription(p.description ? p.description : "");
@@ -236,6 +241,17 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
       };
       setSelectedUnites(prev);
     });
+  };
+
+  const handleUniteGenericChange = (unit_id: string, is_generic: boolean) => {
+    const updated = Object.fromEntries(
+      Object.entries(selectedUnites).map(([id, u]) => [
+        id,
+        { ...u, is_generic: id === unit_id ? is_generic : false },
+      ])
+    );
+    setSelectedUnites(updated);
+    console.log(selectedUnites);
   };
 
   return (
@@ -343,10 +359,24 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
                 className="w-full flex justify-between items-center gap-2"
                 key={unit.unite.id}
               >
-                <span>{unit.price}</span>
+                <span className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="unit_generic"
+                    id={unit.unite.id}
+                    value={unit.unite.id}
+                    checked={unit.is_generic === true}
+                    onChange={(e) =>
+                      handleUniteGenericChange(unit.unite.id, e.target.checked)
+                    }
+                  />
+                  <label htmlFor={unit.unite.id}>Is Generic</label>
+                </span>
                 <span>
                   {unit.unite.icon} {unit.unite.label}
                 </span>
+                <span>{unit.price}</span>
+
                 <button
                   className="p-2 shadow rounded-lg border border-gray-300 hover:bg-red-100 hover:text-red-700"
                   onClick={() => {
