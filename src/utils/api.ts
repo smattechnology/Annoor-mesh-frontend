@@ -3,7 +3,7 @@
 import axios from "axios";
 
 const devBaseURL = "http://localhost:1024";
-const prodBaseURL = "https://api.nuraloom.xyz";
+const prodBaseURL = "https://messapi.annoorfoods.com";
 
 const BASE_URL =
   process.env.NODE_ENV === "development" ? devBaseURL : prodBaseURL;
