@@ -368,6 +368,9 @@ const ProductsContent = () => {
           setSelectedProduct(undefined);
         }}
         selectedProduct={selectedProduct}
+        onSuccess={() => {
+          fetchProducts();
+        }}
       />
     </div>
   );

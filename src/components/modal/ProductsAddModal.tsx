@@ -11,6 +11,7 @@ interface ProductsAddModalProps {
   open: boolean;
   onClose: () => void;
   selectedProduct?: Product;
+  onSuccess: () => void;
 }
 
 interface ProductFormData {
@@ -40,6 +41,7 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
   open,
   onClose,
   selectedProduct,
+  onSuccess,
 }) => {
   const [showUniteAddModal, setShowUniteAddModal] = useState<boolean>(false);
   const [showCategoryAddModal, setShowCategoryAddModal] =
@@ -207,6 +209,7 @@ const ProductsAddModal: React.FC<ProductsAddModalProps> = ({
     try {
       const res = await api.post("/product/add", payload);
       if (res.status === 201) {
+        onSuccess();
         handleClose();
       }
     } catch (err) {
