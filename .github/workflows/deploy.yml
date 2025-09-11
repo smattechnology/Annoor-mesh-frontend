@@ -1,0 +1,29 @@
+name: Deploy Annoor Mess Frontend to Ubuntu
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Annoor Mess Backend to Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            cd /root/main/frontend/Annoor-mesh-frontend
+            git pull origin main
+            npm install
+            npm run build
+            pm2 restart annoor-mess
