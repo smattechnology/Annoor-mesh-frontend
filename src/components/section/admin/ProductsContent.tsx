@@ -14,6 +14,7 @@ import {
 import ProductsAddModal from "@/components/modal/ProductsAddModal";
 import api from "@/utils/api";
 import { Product } from "@/types";
+import ProductDeleteModal from "@/components/modal/ProductDeleteModal";
 
 interface ApiResponse {
   products: Product[];
@@ -41,6 +42,11 @@ const ProductsContent = () => {
   }>({ field: "created_at", direction: "desc" });
 
   const [productAddIsOpen, setProductAddIsOpen] = useState<boolean>(false);
+
+  const [deleteProductIsOpen, setDeleteProductIsOpen] = useState<{
+    product?: Product;
+    isOpen: boolean;
+  }>({ product: undefined, isOpen: false });
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -310,7 +316,15 @@ const ProductsContent = () => {
                         >
                           Edit
                         </button>
-                        <button className="text-red-600 hover:text-red-900">
+                        <button
+                          className="text-red-600 hover:text-red-900"
+                          onClick={() => {
+                            setDeleteProductIsOpen({
+                              product: product,
+                              isOpen: true,
+                            });
+                          }}
+                        >
                           Delete
                         </button>
                       </td>
@@ -370,6 +384,17 @@ const ProductsContent = () => {
         selectedProduct={selectedProduct}
         onSuccess={() => {
           fetchProducts();
+        }}
+      />
+      <ProductDeleteModal
+        open={deleteProductIsOpen.isOpen}
+        onClose={() => {
+          setDeleteProductIsOpen({ product: undefined, isOpen: false });
+        }}
+        product={deleteProductIsOpen.product}
+        onSuccess={() => {
+          fetchProducts();
+          setDeleteProductIsOpen({ product: undefined, isOpen: false });
         }}
       />
     </div>
