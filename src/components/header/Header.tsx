@@ -46,10 +46,10 @@ const Header = () => {
     <header className="w-full bg-gray-800 text-white shadow-md">
       <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-3 lg:px-8">
         {/* Logo */}
-        <div className="flex flex-col justify-center items-start">
+        <Link href="/" className="flex flex-col justify-center items-start">
           <h1 className="text-xl sm:text-2xl font-bold">MessBazar</h1>
           <p>by An Noor Foods</p>
-        </div>
+        </Link>
 
         {/* Desktop Menu */}
         <nav className="hidden md:flex items-center space-x-6">
