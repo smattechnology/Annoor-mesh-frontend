@@ -1,5 +1,5 @@
-import { BUDGET_THRESHOLDS } from "@/constants";
-import { BudgetStatus, MealTime, MessData, SelectedCategoryMap } from "@/types";
+"use client";
+
 import { Calculator, Coffee, DollarSign, Moon, Sun, Users } from "lucide-react";
 import React, {
   Dispatch,
@@ -8,7 +8,13 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { BUDGET_THRESHOLDS } from "@/constants";
+import { BudgetStatus, MealTime, MessData, SelectedCategoryMap } from "@/types";
 import { BudgetSummary } from "./BudgetSummary";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 interface ItemMessHeaderProps {
   messInfo: MessData;
@@ -22,6 +28,8 @@ interface ItemMessHeaderProps {
   setTotalStudents: Dispatch<SetStateAction<number>>;
   totalBudget: number;
   setTotalBudget: Dispatch<SetStateAction<number>>;
+  mealType: "single" | "multi";
+  setMealType: Dispatch<SetStateAction<"single" | "multi">>;
 }
 
 const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
@@ -36,14 +44,13 @@ const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
   setTotalStudents,
   totalBudget,
   setTotalBudget,
+  mealType,
+  setMealType,
 }) => {
   const [totalPrice, setTotalPrice] = useState<number>(0);
 
   useEffect(() => {
-    setTotalBudget(
-      (budgetPerStudent ? budgetPerStudent : 0) *
-        (totalStudents ? totalStudents : 0)
-    );
+    setTotalBudget((budgetPerStudent || 0) * (totalStudents || 0));
   }, [budgetPerStudent, totalStudents]);
 
   const remainingBudget = useMemo(
@@ -86,174 +93,207 @@ const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
   }, [selectedItems, auto]);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
+    <Card className="shadow-lg border border-gray-200 p-0 overflow-hidden">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 text-white">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h2 className="text-2xl font-bold">{messInfo.name}</h2>
-          </div>
-          <div className="text-right">
-            {/* <p className="text-sm text-blue-100">Capacity</p> */}
-          </div>
-        </div>
-      </div>
+      <CardHeader className="p-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+        <CardTitle className="text-2xl font-bold">{messInfo.name}</CardTitle>
+        <p className="text-sm text-blue-100">{messInfo.address.city}</p>
+      </CardHeader>
 
-      {/* Content Section */}
-      <div className="p-6">
+      <CardContent className="px-6 py-4">
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Mess Information */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <Users className="h-4 w-4 text-blue-600" />
-              </div>
+              <Users className="h-5 w-5 text-blue-600" />
               <h3 className="text-lg font-semibold text-gray-900">
                 Mess Information
               </h3>
             </div>
-
-            {/* Basic Information */}
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Address:</span>
-                <span className="text-right max-w-48 text-gray-900">
-                  {messInfo.address.street}, {messInfo.address.area}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">City:</span>
-                <span className="text-gray-900">
-                  {messInfo.address.city} - {messInfo.address.postalCode}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Contact:</span>
-                <span className="text-gray-900">{messInfo.phone}</span>
-              </div>
+            <div className="text-sm text-gray-700 space-y-2">
+              <p>
+                <span className="font-medium">Address: </span>
+                {messInfo.address.street}, {messInfo.address.area}
+              </p>
+              <p>
+                <span className="font-medium">City: </span>
+                {messInfo.address.city} - {messInfo.address.postalCode}
+              </p>
+              <p>
+                <span className="font-medium">Contact: </span>
+                {messInfo.phone}
+              </p>
             </div>
           </div>
 
           {/* Budget Configuration */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <Calculator className="h-4 w-4 text-green-600" />
-              </div>
+              <Calculator className="h-5 w-5 text-green-600" />
               <h3 className="text-lg font-semibold text-gray-900">
                 Budget Configuration
               </h3>
             </div>
 
-            <div className="w-full flex justify-between items-center gap-2">
-              <button
-                className={`w-full rounded-lg border shadow-sm p-2 flex justify-center items-center gap-1 ${
-                  mealTimes.breakfast
-                    ? "bg-blue-100 border-blue-300 text-blue-700"
-                    : "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+            {/* Meal Type Selection */}
+            <div className="flex gap-2">
+              <Button
+                variant={mealType === "single" ? "default" : "outline"}
+                className={`flex-1 ${
+                  mealType === "single"
+                    ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                    : ""
                 }`}
-                onClick={() =>
-                  setMealTimes({ breakfast: true, lunch: false, dinner: false })
-                }
+                onClick={() => {
+                  setMealType("single");
+                  setMealTimes({
+                    breakfast: true,
+                    lunch: false,
+                    dinner: false,
+                  });
+                }}
               >
-                <Coffee /> <span>সকাল</span>
-              </button>
-              <button
-                className={`w-full rounded-lg border shadow-sm p-2 flex justify-center items-center gap-1 ${
-                  mealTimes.lunch
-                    ? "bg-blue-100 border-blue-300 text-blue-700"
-                    : "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+                <Coffee className="w-4 h-4 mr-1" /> Single
+              </Button>
+
+              <Button
+                variant={mealType === "multi" ? "default" : "outline"}
+                className={`flex-1 ${
+                  mealType === "multi"
+                    ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                    : ""
                 }`}
-                onClick={() =>
-                  setMealTimes({ breakfast: false, lunch: true, dinner: false })
-                }
+                onClick={() => {
+                  setMealType("multi");
+                  setMealTimes({
+                    breakfast: true,
+                    lunch: false,
+                    dinner: false,
+                  });
+                }}
               >
-                <Sun /> <span>দুপুর</span>
-              </button>
-              <button
-                className={`w-full rounded-lg border shadow-sm p-2 flex justify-center items-center gap-1 ${
-                  mealTimes.dinner
-                    ? "bg-blue-100 border-blue-300 text-blue-700"
-                    : "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
-                }`}
-                onClick={() =>
-                  setMealTimes({ breakfast: false, lunch: false, dinner: true })
-                }
-              >
-                <Moon /> <span>রাত</span>
-              </button>
+                <Sun className="w-4 h-4 mr-1" /> Multi
+              </Button>
             </div>
 
-            {/* Budget Inputs */}
+            {/* Meal Times */}
+            <div className="flex gap-2">
+              <Button
+                variant={mealTimes.breakfast ? "default" : "outline"}
+                className={`flex-1 ${
+                  mealTimes.breakfast
+                    ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                    : ""
+                }`}
+                onClick={() =>
+                  mealType === "multi"
+                    ? setMealTimes({
+                        ...mealTimes,
+                        breakfast: !mealTimes.breakfast,
+                      })
+                    : setMealTimes({
+                        breakfast: true,
+                        lunch: false,
+                        dinner: false,
+                      })
+                }
+              >
+                <Coffee className="w-4 h-4 mr-1" /> সকাল
+              </Button>
+              <Button
+                variant={mealTimes.lunch ? "default" : "outline"}
+                className={`flex-1 ${
+                  mealTimes.lunch
+                    ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                    : ""
+                }`}
+                onClick={() =>
+                  mealType === "multi"
+                    ? setMealTimes({ ...mealTimes, lunch: !mealTimes.lunch })
+                    : setMealTimes({
+                        breakfast: false,
+                        lunch: true,
+                        dinner: false,
+                      })
+                }
+              >
+                <Sun className="w-4 h-4 mr-1" /> দুপুর
+              </Button>
+              <Button
+                variant={mealTimes.dinner ? "default" : "outline"}
+                className={`flex-1 ${
+                  mealTimes.dinner
+                    ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                    : ""
+                }`}
+                onClick={() =>
+                  mealType === "multi"
+                    ? setMealTimes({ ...mealTimes, dinner: !mealTimes.dinner })
+                    : setMealTimes({
+                        breakfast: false,
+                        lunch: false,
+                        dinner: true,
+                      })
+                }
+              >
+                <Moon className="w-4 h-4 mr-1" /> রাত
+              </Button>
+            </div>
+
+            {/* Inputs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label
-                  htmlFor="budget-per-student"
-                  className="block text-sm font-medium text-gray-700 mb-1 text-nowrap"
-                >
+                <label className="block text-sm font-medium mb-1">
                   Per Student Budget (৳)
                 </label>
-                <input
-                  id="budget-per-student"
+                <Input
                   type="number"
                   min="0"
                   value={budgetPerStudent || ""}
-                  onChange={(e) => {
-                    setBudgetPerStudent(Number(e.target.value));
-                  }}
+                  onChange={(e) => setBudgetPerStudent(Number(e.target.value))}
                   placeholder="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 />
               </div>
-
               <div>
-                <label
-                  htmlFor="total-students"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
+                <label className="block text-sm font-medium mb-1">
                   Total Students
                 </label>
-                <input
-                  id="total-students"
+                <Input
                   type="number"
                   min="0"
                   value={totalStudents || ""}
-                  onChange={(e) => {
-                    setTotalStudents(Number(e.target.value));
-                  }}
+                  onChange={(e) => setTotalStudents(Number(e.target.value))}
                   placeholder="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 />
               </div>
             </div>
 
-            {/* Total Budget Display */}
+            {/* Total Budget */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Total Budget
-              </label>
-              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium mb-1">Total Budget</p>
+              <Badge
+                variant="outline"
+                className="text-base px-3 py-1 border-blue-500 text-blue-700"
+              >
                 ৳ {totalBudget.toLocaleString("en-BD")}
-              </div>
+              </Badge>
             </div>
           </div>
 
           {/* Meal Settings & Summary */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                <DollarSign className="h-4 w-4 text-purple-600" />
-              </div>
+              <DollarSign className="h-5 w-5 text-purple-600" />
               <h3 className="text-lg font-semibold text-gray-900">
                 Meal Settings & Summary
               </h3>
             </div>
 
-            {/* Active Meal Times */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Active Meal Times
-              </label>
+            <p className="text-sm text-gray-600">Active Meal Times:</p>
+            <div className="flex gap-2 flex-wrap">
+              {mealTimes.breakfast && <Badge>সকাল</Badge>}
+              {mealTimes.lunch && <Badge>দুপুর</Badge>}
+              {mealTimes.dinner && <Badge>রাত</Badge>}
             </div>
 
             {/* Budget Summary */}
@@ -266,8 +306,8 @@ const ItemMessHeader: React.FC<ItemMessHeaderProps> = ({
             />
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

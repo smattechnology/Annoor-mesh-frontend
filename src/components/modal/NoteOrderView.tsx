@@ -5,9 +5,8 @@ import { MessData, UserData } from "@/types";
 type OrderItem = {
   id: string;
   meal_time: "BREAKFAST" | "LUNCH" | "DINNER";
-  meal_budget: number;
   total_meal: number;
-  note: string;
+  menu: string;
 };
 
 type Order = {
@@ -16,6 +15,7 @@ type Order = {
   items: OrderItem[];
   mess: MessData;
   user: UserData;
+  budget: number;
   created_at: string;
 };
 
@@ -31,12 +31,6 @@ const NoteOrderView: React.FC<NoteOrderProps> = ({
   onClose,
 }) => {
   if (!order) return null;
-
-  const calculateTotal = () =>
-    order.items.reduce(
-      (sum, item) => sum + item.meal_budget * item.total_meal,
-      0
-    );
 
   return (
     <Modal
@@ -94,22 +88,15 @@ const NoteOrderView: React.FC<NoteOrderProps> = ({
                   {item.meal_time}
                 </span>
                 <p className="text-gray-700 text-sm">
-                  {item.note || "No special note"}
+                  {item.menu || "No special note"}
                 </p>
               </div>
 
               {/* Right: Pricing Info */}
               <div className="flex flex-col text-right mt-3 sm:mt-0">
                 <span className="text-gray-600 text-sm">
-                  Budget:{" "}
-                  <span className="font-semibold">{item.meal_budget}</span>
-                </span>
-                <span className="text-gray-600 text-sm">
                   Meals:{" "}
                   <span className="font-semibold">{item.total_meal}</span>
-                </span>
-                <span className="text-lg font-bold text-gray-900">
-                  Total: {item.meal_budget * item.total_meal}
                 </span>
               </div>
             </div>
@@ -119,7 +106,7 @@ const NoteOrderView: React.FC<NoteOrderProps> = ({
         {/* Total */}
         <div className="mt-6 flex justify-end border-t pt-4">
           <h3 className="text-xl font-bold text-gray-800">
-            Total: {calculateTotal()}
+            Total: {order.budget.toLocaleString("en-BD")}
           </h3>
         </div>
       </div>

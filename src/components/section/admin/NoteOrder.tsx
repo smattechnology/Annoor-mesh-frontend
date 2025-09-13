@@ -16,9 +16,8 @@ import React, { useState, useEffect } from "react";
 type OrderItem = {
   id: string;
   meal_time: "BREAKFAST" | "LUNCH" | "DINNER";
-  meal_budget: number;
   total_meal: number;
-  note: string;
+  menu: string;
 };
 
 type Order = {
@@ -27,6 +26,7 @@ type Order = {
   items: OrderItem[];
   mess: MessData;
   user: UserData;
+  budget: number;
   created_at: string;
 };
 
@@ -306,13 +306,7 @@ const NoteOrder = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {order.items
-                          .reduce(
-                            (sum, item) =>
-                              sum + item.meal_budget * item.total_meal,
-                            0
-                          )
-                          .toLocaleString("en-BD")}
+                        {order.budget.toLocaleString("en-BD")}
                       </td>
 
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

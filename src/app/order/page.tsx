@@ -64,6 +64,8 @@ export default function Page() {
 
   const [totalMeal, setTotalMeal] = useState<number>(0);
 
+  const [mealType, setMealType] = useState<"single" | "multi">("single");
+
   useEffect(() => {
     if (auto) return;
     let total = 0;
@@ -380,6 +382,8 @@ export default function Page() {
           setTotalStudents={setTotalMeal}
           totalBudget={totalBudget}
           setTotalBudget={setTotalBudget}
+          mealType={mealType}
+          setMealType={setMealType}
         />
 
         {/* Items Section */}

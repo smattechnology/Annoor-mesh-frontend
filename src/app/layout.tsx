@@ -30,10 +30,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full flex flex-col`}
       >
         <AuthProvider>
-          <div className="w-full">
-            <Header />
-          </div>
-          {/* <AuthProvider>{children}</AuthProvider> */}
+          {/* Header is sticky itself, so no need to wrap in a div */}
+          <Header />
+
+          {/* Main content should respect header height */}
           <main className="flex-1">{children}</main>
 
           <Footer />

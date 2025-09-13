@@ -1,221 +1,386 @@
 "use client";
-import api from "@/utils/api";
-import { log } from "console";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import { Coffee, Sun, Moon } from "lucide-react";
-import React, { JSX, useMemo, useState } from "react";
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import api from "@/utils/api";
 
-type MealInfo = {
-  isActive: boolean;
-  budget: number;
-  students: number;
-  note: string;
-};
-
-type MealData = {
-  breakfast: MealInfo;
-  lunch: MealInfo;
-  dinner: MealInfo;
-};
-
-const initialMealData: MealData = {
-  breakfast: { isActive: false, budget: 0, students: 0, note: "" },
-  lunch: { isActive: false, budget: 0, students: 0, note: "" },
-  dinner: { isActive: false, budget: 0, students: 0, note: "" },
-};
-
-const meals: { key: keyof MealData; label: string; icon: JSX.Element }[] = [
-  { key: "breakfast", label: "সকাল", icon: <Coffee /> },
-  { key: "lunch", label: "দুপুর", icon: <Sun /> },
-  { key: "dinner", label: "রাত", icon: <Moon /> },
-];
-
-const MealCard: React.FC<{
-  mealKey: keyof MealData;
-  meal: MealInfo;
-  setMeal: (key: keyof MealData, value: MealInfo) => void;
-  icon: JSX.Element;
-  label: string;
-}> = ({ mealKey, meal, setMeal, icon, label }) => {
-  if (!meal.isActive) return null;
-
-  return (
-    <div className="w-full flex flex-col gap-4 rounded-xl shadow-md border border-gray-200 p-6 mb-6 bg-white transition-shadow hover:shadow-lg">
-      <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
-        {icon} <span>{label}</span>
-      </h2>
-
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
-          <label className="block mb-1 text-sm font-medium text-gray-600">
-            Per Student Budget (৳)
-          </label>
-          <input
-            type="number"
-            className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            value={meal.budget}
-            onChange={(e) =>
-              setMeal(mealKey, { ...meal, budget: Number(e.target.value) })
-            }
-          />
-        </div>
-        <div className="flex-1">
-          <label className="block mb-1 text-sm font-medium text-gray-600">
-            Total Students
-          </label>
-          <input
-            type="number"
-            className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            value={meal.students}
-            onChange={(e) =>
-              setMeal(mealKey, { ...meal, students: Number(e.target.value) })
-            }
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block mb-1 text-sm font-medium text-gray-600">
-          Note
-        </label>
-        <textarea
-          rows={4}
-          className="w-full px-4 py-2 border rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-          value={meal.note}
-          onChange={(e) => setMeal(mealKey, { ...meal, note: e.target.value })}
-        ></textarea>
-      </div>
-    </div>
-  );
-};
+type MealKey = "breakfast" | "lunch" | "dinner";
 
 const NotePage = () => {
-  const [mealData, setMealData] = useState<MealData>(initialMealData);
+  const [mealType, setMealType] = useState<"single" | "multi">("single");
+  const [mealTimes, setMealTimes] = useState<
+    Record<MealKey, { isActive: boolean; totalMeal?: number; menu?: string }>
+  >({
+    breakfast: { isActive: true },
+    lunch: { isActive: false },
+    dinner: { isActive: false },
+  });
+  const [totalBudget, setTotalBudget] = useState<number>(0);
+  const [errors, setErrors] = useState<{
+    totalMeal: Partial<Record<MealKey, string>>;
+    menu: Partial<Record<MealKey, string>>;
+    totalBudget?: string;
+  }>({ totalMeal: {}, menu: {} });
 
-  const toggleMeal = (key: keyof MealData) => {
-    setMealData((prev) => ({
-      ...prev,
-      [key]: { ...prev[key], isActive: !prev[key].isActive },
-    }));
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+
+  const handleMealTypeChange = (type: "single" | "multi") => {
+    if (type === mealType) return;
+    setMealType(type);
+    setMealTimes({
+      breakfast: { isActive: true },
+      lunch: { isActive: false },
+      dinner: { isActive: false },
+    });
   };
 
-  const setMeal = (key: keyof MealData, value: MealInfo) => {
-    setMealData((prev) => ({ ...prev, [key]: value }));
-  };
-
-  // Total budget per meal
-  const totalBudgets = useMemo(() => {
-    const breakfast = mealData.breakfast.isActive
-      ? mealData.breakfast.budget * mealData.breakfast.students
-      : 0;
-    const lunch = mealData.lunch.isActive
-      ? mealData.lunch.budget * mealData.lunch.students
-      : 0;
-    const dinner = mealData.dinner.isActive
-      ? mealData.dinner.budget * mealData.dinner.students
-      : 0;
-    const grandTotal = breakfast + lunch + dinner;
-
-    return { breakfast, lunch, dinner, grandTotal };
-  }, [mealData]);
-
-  const handleSubmit = async () => {
-    const activeMeals = Object.entries(mealData)
-      .filter(([_, data]) => data.isActive)
-      .reduce(
-        (acc, [key, data]) => ({
-          ...acc,
-          [key]: {
-            budget: data.budget,
-            students: data.students,
-            note: data.note,
-          },
-        }),
-        {} as Partial<MealData>
-      );
-
-    const req = await api.post("/order/add/note_order", activeMeals);
-    if (req.status === 201) {
-      alert("Order placed successfully!");
-      setMealData(initialMealData);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  const toggleMealTime = (key: MealKey) => {
+    if (mealType === "multi") {
+      setMealTimes((prev) => {
+        const currentActiveCount = Object.values(prev).filter(
+          (meal) => meal.isActive
+        ).length;
+        if (prev[key].isActive && currentActiveCount === 1) return prev;
+        return {
+          ...prev,
+          [key]: { ...prev[key], isActive: !prev[key].isActive },
+        };
+      });
+    } else {
+      setMealTimes({
+        breakfast: { ...mealTimes.breakfast, isActive: key === "breakfast" },
+        lunch: { ...mealTimes.lunch, isActive: key === "lunch" },
+        dinner: { ...mealTimes.dinner, isActive: key === "dinner" },
+      });
     }
   };
 
+  const handleMealInput = (key: MealKey, value: number | undefined) => {
+    setMealTimes((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], totalMeal: value },
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      totalMeal: { ...prev.totalMeal, [key]: undefined },
+    }));
+  };
+
+  const handleMenuInput = (key: MealKey, value: string) => {
+    setMealTimes((prev) => ({ ...prev, [key]: { ...prev[key], menu: value } }));
+    setErrors((prev) => ({
+      ...prev,
+      menu: { ...prev.menu, [key]: undefined },
+    }));
+  };
+
+  const handleBudgetInput = (value: number | 0) => {
+    setTotalBudget(value);
+    setErrors((prev) => ({ ...prev, totalBudget: undefined }));
+  };
+
+  // Validation
+  const validate = (): boolean => {
+    const newErrors: typeof errors = { totalMeal: {}, menu: {} };
+    let valid = true;
+
+    Object.entries(mealTimes).forEach(([meal, data]) => {
+      if (!data.isActive) return;
+
+      if (!data.totalMeal || data.totalMeal <= 0) {
+        newErrors.totalMeal[meal as MealKey] = "Required and must be > 0";
+        valid = false;
+      }
+
+      if (!data.menu || data.menu.trim() === "") {
+        newErrors.menu[meal as MealKey] = "Menu is required";
+        valid = false;
+      }
+    });
+
+    if (!totalBudget || totalBudget <= 0) {
+      newErrors.totalBudget = "Required and must be > 0";
+      valid = false;
+    }
+
+    setErrors(newErrors);
+    return valid;
+  };
+
+  const handleReset = () => {
+    setMealType("single");
+    setMealTimes({
+      breakfast: { isActive: true, totalMeal: undefined, menu: "" },
+      lunch: { isActive: false, totalMeal: undefined, menu: "" },
+      dinner: { isActive: false, totalMeal: undefined, menu: "" },
+    });
+    setTotalBudget(0);
+    setErrors({ totalMeal: {}, menu: {} });
+    setApiError(null);
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+
+    setLoading(true);
+    setApiError(null);
+
+    // Prepare payload
+    const payload = {
+      breakfast: mealTimes.breakfast.isActive
+        ? {
+            total_meal: mealTimes.breakfast.totalMeal,
+            menu: mealTimes.breakfast.menu,
+          }
+        : null,
+      lunch: mealTimes.lunch.isActive
+        ? { total_meal: mealTimes.lunch.totalMeal, menu: mealTimes.lunch.menu }
+        : null,
+      dinner: mealTimes.dinner.isActive
+        ? {
+            total_meal: mealTimes.dinner.totalMeal,
+            menu: mealTimes.dinner.menu,
+          }
+        : null,
+      budget: totalBudget,
+      meal_type: mealType,
+    };
+
+    try {
+      const response = await api.post("/order/add/note_order", payload);
+      // Assuming your API returns success status
+      if (response.status === 200 || response.status === 201) {
+        setShowModal(false); // close modal if open
+        handleReset(); // reset form
+      } else {
+        setApiError("Failed to submit meal plan. Please try again.");
+      }
+    } catch (error: any) {
+      // Optional: get message from server
+      const message =
+        error?.response?.data?.message ||
+        error.message ||
+        "Something went wrong";
+      setApiError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const activeMeals = Object.fromEntries(
+    Object.entries(mealTimes).filter(([_, data]) => data.isActive)
+  );
+
   return (
-    <div className="min-h-screen w-full bg-gray-50 py-10 px-4">
-      <div className="max-w-5xl mx-auto">
-        {/* Meal Toggle Buttons */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          {meals.map((meal) => {
-            const active = mealData[meal.key].isActive;
-            return (
-              <button
-                key={meal.key}
-                className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border shadow-sm transition-colors ${
-                  active
-                    ? "bg-blue-100 border-blue-300 text-blue-700"
-                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-                }`}
-                onClick={() => toggleMeal(meal.key)}
-              >
-                {meal.icon}
-                <span>{meal.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Meal Cards */}
-        {meals.map((meal) => (
-          <MealCard
-            key={meal.key}
-            mealKey={meal.key}
-            meal={mealData[meal.key]}
-            setMeal={setMeal}
-            icon={meal.icon}
-            label={meal.label}
-          />
-        ))}
-
-        {/* Total Budget & Submit Card */}
-        {Object.values(mealData).some((m) => m.isActive) && (
-          <div className="w-full mb-6 p-6 rounded-xl border border-gray-200 bg-white shadow-sm flex flex-col gap-3 max-w-sm mx-auto">
-            {/* Meal Totals */}
-            {mealData.breakfast.isActive && (
-              <div className="flex justify-between text-gray-700 font-medium">
-                <span>সকাল:</span>
-                <span>৳{totalBudgets.breakfast}</span>
-              </div>
-            )}
-            {mealData.lunch.isActive && (
-              <div className="flex justify-between text-gray-700 font-medium">
-                <span>দুপুর:</span>
-                <span>৳{totalBudgets.lunch}</span>
-              </div>
-            )}
-            {mealData.dinner.isActive && (
-              <div className="flex justify-between text-gray-700 font-medium">
-                <span>রাত:</span>
-                <span>৳{totalBudgets.dinner}</span>
-              </div>
-            )}
-
-            {/* Grand Total */}
-            <div className="flex justify-between text-lg font-semibold text-blue-600 border-t border-gray-200 pt-2">
-              <span>Total:</span>
-              <span>৳{totalBudgets.grandTotal}</span>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              onClick={handleSubmit}
-              className="mt-4 w-full px-6 py-3 bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-700 transition-colors font-semibold"
+    <div className="w-full lg:max-w-3xl mx-auto p-4 flex flex-col gap-6">
+      {/* Meal Planner Card */}
+      <Card className="shadow-lg border border-gray-200">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">Meal Planner</CardTitle>
+          <CardDescription>
+            Choose your meal type and active meals.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-6">
+          {/* Meal Type Switch */}
+          <div className="w-full flex gap-2">
+            <Button
+              variant={mealType === "single" ? "default" : "outline"}
+              className={`flex-1 ${
+                mealType === "single"
+                  ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                  : ""
+              }`}
+              onClick={() => handleMealTypeChange("single")}
             >
-              Submit
-            </button>
+              <Coffee className="w-4 h-4 mr-1" /> Single Meal
+            </Button>
+            <Button
+              variant={mealType === "multi" ? "default" : "outline"}
+              className={`flex-1 ${
+                mealType === "multi"
+                  ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                  : ""
+              }`}
+              onClick={() => handleMealTypeChange("multi")}
+            >
+              <Coffee className="w-4 h-4 mr-1" /> Multi Meal
+            </Button>
           </div>
-        )}
-      </div>
+
+          {/* Meal Time Buttons */}
+          <div className="w-full flex gap-2">
+            {(["breakfast", "lunch", "dinner"] as const).map((meal) => (
+              <Button
+                key={meal}
+                variant={mealTimes[meal].isActive ? "default" : "outline"}
+                className={`flex-1 ${
+                  mealTimes[meal].isActive
+                    ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                    : ""
+                }`}
+                onClick={() => toggleMealTime(meal)}
+              >
+                {meal === "breakfast" && <Coffee className="w-4 h-4 mr-1" />}
+                {meal === "lunch" && <Sun className="w-4 h-4 mr-1" />}
+                {meal === "dinner" && <Moon className="w-4 h-4 mr-1" />}
+                {meal.charAt(0).toUpperCase() + meal.slice(1)}
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Individual Meal Inputs */}
+      {(["breakfast", "lunch", "dinner"] as const).map(
+        (meal) =>
+          mealTimes[meal].isActive && (
+            <Card key={meal} className="shadow-md border border-gray-200">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold capitalize">
+                  {meal}
+                </CardTitle>
+                <CardDescription>
+                  Set total meals and menu for {meal}.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-2">
+                <Input
+                  type="number"
+                  placeholder={`${meal} total meals`}
+                  value={
+                    mealTimes[meal].totalMeal && mealTimes[meal].totalMeal > 0
+                      ? mealTimes[meal].totalMeal
+                      : ""
+                  }
+                  onChange={(e) =>
+                    handleMealInput(meal, Number(e.target.value))
+                  }
+                  disabled={loading}
+                />
+                {errors.totalMeal[meal] && (
+                  <p className="text-red-600 text-sm">
+                    {errors.totalMeal[meal]}
+                  </p>
+                )}
+                <textarea
+                  className="border rounded p-2 w-full min-h-[80px]"
+                  placeholder={`Write your ${meal} menu here...`}
+                  value={mealTimes[meal].menu ?? ""}
+                  onChange={(e) => handleMenuInput(meal, e.target.value)}
+                  disabled={loading}
+                />
+                {errors.menu[meal] && (
+                  <p className="text-red-600 text-sm">{errors.menu[meal]}</p>
+                )}
+              </CardContent>
+            </Card>
+          )
+      )}
+
+      {/* Budget & Submit */}
+      <Card className="shadow-md border border-gray-200">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">
+            Budget & Submit
+          </CardTitle>
+          <CardDescription>
+            Set your total budget and submit your meal plan.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          <Input
+            type="number"
+            placeholder="Total budget"
+            value={totalBudget && totalBudget > 0 ? totalBudget : ""}
+            onChange={(e) => handleBudgetInput(Number(e.target.value))}
+            disabled={loading}
+          />
+          {errors.totalBudget && (
+            <p className="text-red-600 text-sm">{errors.totalBudget}</p>
+          )}
+          {apiError && <p className="text-red-600 mt-2">{apiError}</p>}
+        </CardContent>
+        <CardFooter className="flex justify-end gap-2">
+          <Button
+            className="bg-gray-500 hover:bg-gray-600 text-white"
+            onClick={handleReset}
+            disabled={loading}
+          >
+            Reset
+          </Button>
+          <Button
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => setShowModal(validate())}
+          >
+            Submit Plan
+          </Button>
+        </CardFooter>
+      </Card>
+
+      {/* Modal */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Meal Plan Summary</DialogTitle>
+            <DialogDescription>
+              Review your meals and budget before final submission.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-2 mt-4">
+            <p>
+              <strong>Meal Type:</strong> {mealType}
+            </p>
+            {Object.entries(activeMeals).map(([meal, data]) => (
+              <div key={meal} className="border-b pb-2">
+                <p className="capitalize">
+                  <strong>{meal}:</strong>
+                </p>
+                <p>Total Meals: {data.totalMeal ?? "Not set"}</p>
+                <p>Menu: {data.menu || "Not set"}</p>
+              </div>
+            ))}
+            <p className="mt-2">
+              <strong>Total Budget:</strong>{" "}
+              {totalBudget > 0
+                ? totalBudget.toLocaleString("en-BD")
+                : "Not set"}
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => setShowModal(false)}>Close</Button>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? "Submitting..." : "Submit Plan"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

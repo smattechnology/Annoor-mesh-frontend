@@ -43,7 +43,7 @@ const Header = () => {
   if (skipLayout) return null;
 
   return (
-    <header className="w-full bg-gray-800 text-white shadow-md">
+    <header className="w-full bg-gray-800 text-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-3 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex flex-col justify-center items-start">
