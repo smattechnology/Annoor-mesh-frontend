@@ -25,7 +25,6 @@ import api from "@/utils/api";
 type MealKey = "breakfast" | "lunch" | "dinner";
 
 const NotePage = () => {
-  const [mealType, setMealType] = useState<"single" | "multi">("single");
   const [mealTimes, setMealTimes] = useState<
     Record<MealKey, { isActive: boolean; totalMeal?: number; menu?: string }>
   >({
@@ -44,35 +43,17 @@ const NotePage = () => {
   const [apiError, setApiError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const handleMealTypeChange = (type: "single" | "multi") => {
-    if (type === mealType) return;
-    setMealType(type);
-    setMealTimes({
-      breakfast: { isActive: true },
-      lunch: { isActive: false },
-      dinner: { isActive: false },
-    });
-  };
-
   const toggleMealTime = (key: MealKey) => {
-    if (mealType === "multi") {
-      setMealTimes((prev) => {
-        const currentActiveCount = Object.values(prev).filter(
-          (meal) => meal.isActive
-        ).length;
-        if (prev[key].isActive && currentActiveCount === 1) return prev;
-        return {
-          ...prev,
-          [key]: { ...prev[key], isActive: !prev[key].isActive },
-        };
-      });
-    } else {
-      setMealTimes({
-        breakfast: { ...mealTimes.breakfast, isActive: key === "breakfast" },
-        lunch: { ...mealTimes.lunch, isActive: key === "lunch" },
-        dinner: { ...mealTimes.dinner, isActive: key === "dinner" },
-      });
-    }
+    setMealTimes((prev) => {
+      const currentActiveCount = Object.values(prev).filter(
+        (meal) => meal.isActive
+      ).length;
+      if (prev[key].isActive && currentActiveCount === 1) return prev;
+      return {
+        ...prev,
+        [key]: { ...prev[key], isActive: !prev[key].isActive },
+      };
+    });
   };
 
   const handleMealInput = (key: MealKey, value: number | undefined) => {
@@ -128,7 +109,6 @@ const NotePage = () => {
   };
 
   const handleReset = () => {
-    setMealType("single");
     setMealTimes({
       breakfast: { isActive: true, totalMeal: undefined, menu: "" },
       lunch: { isActive: false, totalMeal: undefined, menu: "" },
@@ -163,7 +143,6 @@ const NotePage = () => {
           }
         : null,
       budget: totalBudget,
-      meal_type: mealType,
     };
 
     try {
@@ -202,32 +181,6 @@ const NotePage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
-          {/* Meal Type Switch */}
-          <div className="w-full flex gap-2">
-            <Button
-              variant={mealType === "single" ? "default" : "outline"}
-              className={`flex-1 ${
-                mealType === "single"
-                  ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                  : ""
-              }`}
-              onClick={() => handleMealTypeChange("single")}
-            >
-              <Coffee className="w-4 h-4 mr-1" /> Single Meal
-            </Button>
-            <Button
-              variant={mealType === "multi" ? "default" : "outline"}
-              className={`flex-1 ${
-                mealType === "multi"
-                  ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                  : ""
-              }`}
-              onClick={() => handleMealTypeChange("multi")}
-            >
-              <Coffee className="w-4 h-4 mr-1" /> Multi Meal
-            </Button>
-          </div>
-
           {/* Meal Time Buttons */}
           <div className="w-full flex gap-2">
             {(["breakfast", "lunch", "dinner"] as const).map((meal) => (
@@ -349,9 +302,6 @@ const NotePage = () => {
           </DialogHeader>
 
           <div className="flex flex-col gap-2 mt-4">
-            <p>
-              <strong>Meal Type:</strong> {mealType}
-            </p>
             {Object.entries(activeMeals).map(([meal, data]) => (
               <div key={meal} className="border-b pb-2">
                 <p className="capitalize">
