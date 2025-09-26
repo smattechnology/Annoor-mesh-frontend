@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy Annoor Mess Backend to Ubuntu
+    name: Deploy Annoor Mess Frontend to Ubuntu
     runs-on: ubuntu-latest
 
     steps:
@@ -23,7 +23,8 @@ jobs:
           port: 22
           script: |
             cd /root/main/frontend/Annoor-mesh-frontend
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             npm install
             npm run build
-            pm2 restart annoor-mess
+            pm2 restart nextjs-app --env production
